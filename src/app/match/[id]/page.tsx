@@ -1,17 +1,26 @@
-import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Clock, MapPin } from "lucide-react";
-
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { getMatchById } from "@/lib/data/matches";
 import {
   formatDate,
-  getConfidenceColor,
   getFlagUrl,
   getStageLabel,
+  getConfidenceColor,
+  getConfidenceLabel,
 } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import Image from "next/image";
+import Link from "next/link";
+import {
+  MapPin,
+  Calendar,
+  User,
+  Cloud,
+  Brain,
+  TrendingUp,
+} from "lucide-react";
+import type { Metadata } from "next";
 
 interface MatchPageProps {
   params: Promise<{ id: string }>;
@@ -22,138 +31,252 @@ export async function generateMetadata({
 }: MatchPageProps): Promise<Metadata> {
   const { id } = await params;
   const match = await getMatchById(id);
-
-  if (!match) {
-    return { title: "Match Not Found" };
-  }
-
+  if (!match) return { title: "Match Not Found" };
   return {
     title: `${match.home_team.name} vs ${match.away_team.name}`,
-    description: `AI prediction and match details for ${match.home_team.name} vs ${match.away_team.name}.`,
+    description: `AI prediction for ${match.home_team.name} vs ${match.away_team.name} - FIFA World Cup 2026`,
   };
-}
-
-function TeamPanel({
-  name,
-  code,
-  align,
-}: {
-  name: string;
-  code: string;
-  align: "left" | "right";
-}) {
-  return (
-    <div className={`flex flex-1 flex-col gap-3 ${align === "right" ? "items-end text-right" : "items-start text-left"}`}>
-      <div className="relative h-16 w-16 overflow-hidden rounded-md">
-        <Image
-          src={getFlagUrl(code)}
-          alt={name}
-          fill
-          className="object-cover"
-          unoptimized
-        />
-      </div>
-      <div>
-        <p className="text-sm text-muted-foreground">{code}</p>
-        <h2 className="font-display text-2xl font-bold">{name}</h2>
-      </div>
-    </div>
-  );
 }
 
 export default async function MatchPage({ params }: MatchPageProps) {
   const { id } = await params;
   const match = await getMatchById(id);
+  if (!match) notFound();
 
-  if (!match) {
-    notFound();
-  }
+  const { home_team, away_team, prediction, venue } = match;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8 flex flex-wrap items-center gap-3">
-        <Badge variant="secondary">{getStageLabel(match.stage)}</Badge>
-        {match.group && <Badge variant="outline">Group {match.group.name}</Badge>}
-        {match.prediction && (
-          <Badge variant="outline" className={getConfidenceColor(match.prediction.confidence)}>
-            {match.prediction.confidence}% confidence
-          </Badge>
+    <div className="container mx-auto max-w-4xl px-4 py-8">
+      <div className="mb-6 text-center">
+        <Badge variant="secondary" className="text-sm">
+          {getStageLabel(match.stage)}
+          {match.group && ` • Group ${match.group.name}`}
+        </Badge>
+      </div>
+
+      <div className="mb-8 flex items-center justify-between gap-4">
+        <Link href={`/team/${home_team.slug}`} className="group flex-1 text-center">
+          <div className="relative mx-auto mb-3 h-14 w-20 md:h-20 md:w-28">
+            <Image
+              src={getFlagUrl(home_team.code)}
+              alt={home_team.name}
+              fill
+              className="rounded-lg object-cover shadow-md"
+              unoptimized
+            />
+          </div>
+          <h2 className="font-display text-lg font-bold transition-colors group-hover:text-brand-gold md:text-2xl">
+            {home_team.name}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            FIFA #{home_team.fifa_ranking || "N/A"}
+          </p>
+        </Link>
+
+        <div className="shrink-0 text-center">
+          {prediction ? (
+            <div>
+              <div className="font-display text-4xl font-bold text-brand-gold md:text-5xl">
+                {prediction.predicted_home_score} -{" "}
+                {prediction.predicted_away_score}
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">AI Prediction</p>
+              <Badge
+                className={`mt-1 border bg-transparent ${getConfidenceColor(prediction.confidence)}`}
+              >
+                {prediction.confidence}%{" "}
+                {getConfidenceLabel(prediction.confidence)}
+              </Badge>
+            </div>
+          ) : (
+            <div className="font-display text-3xl text-muted-foreground">vs</div>
+          )}
+        </div>
+
+        <Link href={`/team/${away_team.slug}`} className="group flex-1 text-center">
+          <div className="relative mx-auto mb-3 h-14 w-20 md:h-20 md:w-28">
+            <Image
+              src={getFlagUrl(away_team.code)}
+              alt={away_team.name}
+              fill
+              className="rounded-lg object-cover shadow-md"
+              unoptimized
+            />
+          </div>
+          <h2 className="font-display text-lg font-bold transition-colors group-hover:text-brand-gold md:text-2xl">
+            {away_team.name}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            FIFA #{away_team.fifa_ranking || "N/A"}
+          </p>
+        </Link>
+      </div>
+
+      <Card className="mb-6 border-border bg-card p-4 md:p-6">
+        <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <p className="text-xs text-muted-foreground">Date &amp; Time</p>
+              <p className="font-medium">{formatDate(match.match_date)}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <MapPin className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <p className="text-xs text-muted-foreground">Venue</p>
+              <p className="font-medium">{venue.name}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <User className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <p className="text-xs text-muted-foreground">Referee</p>
+              <p className="font-medium">{match.referee || "TBD"}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Cloud className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <p className="text-xs text-muted-foreground">Weather</p>
+              <p className="font-medium">{match.weather || "TBD"}</p>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <Card className="border-border bg-card p-6">
+          <h3 className="mb-4 flex items-center gap-2 font-display text-lg font-bold">
+            <TrendingUp className="h-5 w-5 text-brand-gold" />
+            Team Comparison
+          </h3>
+          <div className="space-y-4">
+            {[
+              {
+                label: "FIFA Ranking",
+                home: `#${home_team.fifa_ranking || "N/A"}`,
+                away: `#${away_team.fifa_ranking || "N/A"}`,
+              },
+              {
+                label: "Elo Rating",
+                home: String(home_team.elo_rating),
+                away: String(away_team.elo_rating),
+              },
+              {
+                label: "Avg Goals",
+                home: String(home_team.avg_goals_scored),
+                away: String(away_team.avg_goals_scored),
+              },
+              {
+                label: "Avg Conceded",
+                home: String(home_team.avg_goals_conceded),
+                away: String(away_team.avg_goals_conceded),
+              },
+              {
+                label: "Form",
+                home: home_team.recent_form || "N/A",
+                away: away_team.recent_form || "N/A",
+              },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className="flex items-center justify-between"
+              >
+                <span className="w-20 text-right text-sm font-medium">
+                  {stat.home}
+                </span>
+                <span className="flex-1 text-center text-xs text-muted-foreground">
+                  {stat.label}
+                </span>
+                <span className="w-20 text-left text-sm font-medium">
+                  {stat.away}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {prediction && (
+          <Card className="border-border bg-card p-6">
+            <h3 className="mb-4 flex items-center gap-2 font-display text-lg font-bold">
+              <Brain className="h-5 w-5 text-brand-gold" />
+              AI Prediction
+            </h3>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-green-400">{home_team.code} Win</span>
+                  <span className="font-bold">{prediction.home_win_prob}%</span>
+                </div>
+                <div className="h-3 overflow-hidden rounded-full bg-secondary">
+                  <div
+                    className="h-full rounded-full bg-green-500 transition-all"
+                    style={{ width: `${prediction.home_win_prob}%` }}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-yellow-400">Draw</span>
+                  <span className="font-bold">{prediction.draw_prob}%</span>
+                </div>
+                <div className="h-3 overflow-hidden rounded-full bg-secondary">
+                  <div
+                    className="h-full rounded-full bg-yellow-500 transition-all"
+                    style={{ width: `${prediction.draw_prob}%` }}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-red-400">{away_team.code} Win</span>
+                  <span className="font-bold">{prediction.away_win_prob}%</span>
+                </div>
+                <div className="h-3 overflow-hidden rounded-full bg-secondary">
+                  <div
+                    className="h-full rounded-full bg-red-500 transition-all"
+                    style={{ width: `${prediction.away_win_prob}%` }}
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="text-center">
+                <p className="mb-1 text-sm text-muted-foreground">
+                  Model Confidence
+                </p>
+                <p
+                  className={`text-2xl font-bold ${getConfidenceColor(prediction.confidence)}`}
+                >
+                  {prediction.confidence}%
+                </p>
+              </div>
+            </div>
+          </Card>
         )}
       </div>
 
-      <Card className="border-border bg-card p-6 md:p-8">
-        <div className="flex flex-col gap-6 md:flex-row md:items-center">
-          <TeamPanel
-            name={match.home_team.name}
-            code={match.home_team.code}
-            align="left"
-          />
-
-          <div className="shrink-0 text-center">
-            {match.prediction ? (
-              <>
-                <p className="mb-2 text-sm text-muted-foreground">AI Prediction</p>
-                <div className="font-display text-4xl font-bold text-brand-gold">
-                  {match.prediction.predicted_home_score} -{" "}
-                  {match.prediction.predicted_away_score}
-                </div>
-              </>
-            ) : (
-              <div className="font-display text-4xl font-bold text-muted-foreground">
-                vs
-              </div>
-            )}
-          </div>
-
-          <TeamPanel
-            name={match.away_team.name}
-            code={match.away_team.code}
-            align="right"
-          />
-        </div>
-
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
-          <div className="rounded-xl bg-secondary/50 p-4">
-            <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4" />
-              Match Time
-            </div>
-            <p className="text-lg font-semibold">{formatDate(match.match_date)}</p>
-          </div>
-
-          <div className="rounded-xl bg-secondary/50 p-4">
-            <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4" />
-              Venue
-            </div>
-            <p className="text-lg font-semibold">{match.venue.name}</p>
-            <p className="text-sm text-muted-foreground">
-              {match.venue.city}, {match.venue.country}
+      <Card className="mt-6 border-border bg-card p-6">
+        <h3 className="mb-3 flex items-center gap-2 font-display text-lg font-bold">
+          <Brain className="h-5 w-5 text-brand-gold" />
+          AI Match Analysis
+        </h3>
+        {prediction?.analysis ? (
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+            {prediction.analysis}
+          </p>
+        ) : (
+          <div className="py-8 text-center">
+            <Brain className="mx-auto mb-3 h-10 w-10 text-muted-foreground/50" />
+            <p className="text-muted-foreground">
+              Detailed AI analysis will be available soon.
             </p>
-          </div>
-        </div>
-
-        {match.prediction && (
-          <div className="mt-8">
-            <div className="mb-3 flex items-center justify-between text-sm text-muted-foreground">
-              <span>{match.home_team.code} win {match.prediction.home_win_prob}%</span>
-              <span>Draw {match.prediction.draw_prob}%</span>
-              <span>{match.away_team.code} win {match.prediction.away_win_prob}%</span>
-            </div>
-            <div className="flex h-3 overflow-hidden rounded-full bg-secondary">
-              <div
-                className="bg-green-500"
-                style={{ width: `${match.prediction.home_win_prob}%` }}
-              />
-              <div
-                className="bg-yellow-500"
-                style={{ width: `${match.prediction.draw_prob}%` }}
-              />
-              <div
-                className="bg-red-500"
-                style={{ width: `${match.prediction.away_win_prob}%` }}
-              />
-            </div>
+            <p className="mt-1 text-xs text-muted-foreground/70">
+              Our AI model analyzes team form, historical data, and tactical
+              matchups.
+            </p>
           </div>
         )}
       </Card>
