@@ -1,36 +1,57 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk, Geist } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
-import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const inter = Inter({
-  variable: "--font-inter",
   subsets: ["latin"],
+  variable: "--font-inter",
 });
 
 const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
   subsets: ["latin"],
+  variable: "--font-space-grotesk",
 });
 
 export const metadata: Metadata = {
-  title: "World Cup AI Score Predictor",
-  description: "AI-powered World Cup score prediction platform.",
+  title: {
+    default: "WorldCup AI Predictor | AI-Powered Match Predictions",
+    template: "%s | WorldCup AI Predictor",
+  },
+  description:
+    "AI-powered World Cup 2026 match predictions, live scores, team analysis, and user predictions with global leaderboards.",
+  keywords: [
+    "World Cup 2026",
+    "AI predictions",
+    "football",
+    "soccer",
+    "match predictions",
+    "FIFA",
+    "sports analytics",
+  ],
+  openGraph: {
+    title: "WorldCup AI Predictor",
+    description: "AI-powered World Cup 2026 match predictions and analysis",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "WorldCup AI Predictor",
+    description: "AI-powered World Cup 2026 match predictions and analysis",
+  },
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html
-      lang="en"
-      className={cn("h-full", inter.variable, spaceGrotesk.variable, "font-sans", geist.variable)}
-    >
-      <body className="min-h-full">{children}</body>
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <body
+        className={`${inter.variable} ${spaceGrotesk.variable} font-sans antialiased min-h-screen bg-background`}
+      >
+        {children}
+      </body>
     </html>
   );
 }
