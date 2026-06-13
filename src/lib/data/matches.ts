@@ -35,6 +35,12 @@ export async function getAllMatches(
     );
 }
 
+export async function getMatchById(
+  id: string
+): Promise<MatchWithDetails | null> {
+  return mockMatches.find((match) => match.id === id) ?? null;
+}
+
 export async function getHotMatches(): Promise<MatchWithDetails[]> {
   return [...mockMatches]
     .filter((match) => match.prediction)
