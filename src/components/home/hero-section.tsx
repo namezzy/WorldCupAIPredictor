@@ -90,6 +90,7 @@ export function HeroSection() {
           >
             <Button
               size="lg"
+              nativeButton={false}
               className="bg-brand-gold font-semibold text-background hover:bg-brand-gold/90"
               render={<Link href="/predictions" />}
             >
@@ -98,6 +99,7 @@ export function HeroSection() {
             <Button
               variant="outline"
               size="lg"
+              nativeButton={false}
               className="border-border hover:bg-secondary"
               render={<Link href="/matches" />}
             >
