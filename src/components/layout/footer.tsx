@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Trophy, Globe, MessageCircle } from "lucide-react";
 
 const footerLinks = [
+  { label: "Schedule", href: "/schedule" },
   { label: "Matches", href: "/matches" },
   { label: "Teams", href: "/teams" },
   { label: "Groups", href: "/groups" },
