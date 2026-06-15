@@ -36,8 +36,20 @@ export function getStageLabel(stage: string): string {
   return labels[stage] || stage;
 }
 
+const fifaToIso: Record<string, string> = {
+  USA: "us", MEX: "mx", CAN: "ca", BRA: "br", ARG: "ar", URU: "uy",
+  COL: "co", ECU: "ec", CHI: "cl", CRC: "cr", HON: "hn", JAM: "jm",
+  PAN: "pa", SLV: "sv", FRA: "fr", GER: "de", ESP: "es", ENG: "gb-eng",
+  ITA: "it", NED: "nl", POR: "pt", BEL: "be", CRO: "hr", DEN: "dk",
+  SUI: "ch", AUT: "at", POL: "pl", UKR: "ua", SRB: "rs", TUR: "tr",
+  JPN: "jp", KOR: "kr", AUS: "au", IRN: "ir", KSA: "sa", QAT: "qa",
+  UZB: "uz", JOR: "jo", MAR: "ma", SEN: "sn", NGA: "ng", CMR: "cm",
+  GHA: "gh", CIV: "ci", TUN: "tn", EGY: "eg", ALG: "dz", NZL: "nz",
+};
+
 export function getFlagUrl(code: string): string {
-  return `https://flagcdn.com/w80/${code.toLowerCase()}.png`;
+  const iso = fifaToIso[code.toUpperCase()] || code.toLowerCase();
+  return `https://flagcdn.com/w80/${iso}.png`;
 }
 
 export function getConfidenceColor(confidence: number): string {
