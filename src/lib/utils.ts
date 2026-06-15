@@ -37,14 +37,18 @@ export function getStageLabel(stage: string): string {
 }
 
 const fifaToIso: Record<string, string> = {
-  USA: "us", MEX: "mx", CAN: "ca", BRA: "br", ARG: "ar", URU: "uy",
-  COL: "co", ECU: "ec", CHI: "cl", CRC: "cr", HON: "hn", JAM: "jm",
-  PAN: "pa", SLV: "sv", FRA: "fr", GER: "de", ESP: "es", ENG: "gb-eng",
-  ITA: "it", NED: "nl", POR: "pt", BEL: "be", CRO: "hr", DEN: "dk",
-  SUI: "ch", AUT: "at", POL: "pl", UKR: "ua", SRB: "rs", TUR: "tr",
-  JPN: "jp", KOR: "kr", AUS: "au", IRN: "ir", KSA: "sa", QAT: "qa",
-  UZB: "uz", JOR: "jo", MAR: "ma", SEN: "sn", NGA: "ng", CMR: "cm",
-  GHA: "gh", CIV: "ci", TUN: "tn", EGY: "eg", ALG: "dz", NZL: "nz",
+  MEX: "mx", KOR: "kr", RSA: "za", CZE: "cz",
+  CAN: "ca", SUI: "ch", QAT: "qa", BIH: "ba",
+  BRA: "br", MAR: "ma", SCO: "gb-sct", HAI: "ht",
+  USA: "us", AUS: "au", PAR: "py", TUR: "tr",
+  GER: "de", ECU: "ec", CIV: "ci", CUW: "cw",
+  NED: "nl", JPN: "jp", TUN: "tn", SWE: "se",
+  BEL: "be", IRN: "ir", EGY: "eg", NZL: "nz",
+  ESP: "es", URU: "uy", KSA: "sa", CPV: "cv",
+  FRA: "fr", SEN: "sn", NOR: "no", IRQ: "iq",
+  ARG: "ar", AUT: "at", ALG: "dz", JOR: "jo",
+  POR: "pt", COL: "co", UZB: "uz", COD: "cd",
+  ENG: "gb-eng", CRO: "hr", PAN: "pa", GHA: "gh",
 };
 
 export function getFlagUrl(code: string): string {
