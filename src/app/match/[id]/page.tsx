@@ -74,7 +74,19 @@ export default async function MatchPage({ params }: MatchPageProps) {
         </Link>
 
         <div className="shrink-0 text-center">
-          {prediction ? (
+          {match.status === "finished" && match.home_score !== null ? (
+            <div>
+              <div className="font-display text-4xl font-bold text-foreground md:text-5xl">
+                {match.home_score} - {match.away_score}
+              </div>
+              <p className="mt-2 text-xs text-green-400 font-semibold">Full Time</p>
+              {prediction && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  AI predicted: {prediction.predicted_home_score}-{prediction.predicted_away_score}
+                </p>
+              )}
+            </div>
+          ) : prediction ? (
             <div>
               <div className="font-display text-4xl font-bold text-brand-gold md:text-5xl">
                 {prediction.predicted_home_score} -{" "}

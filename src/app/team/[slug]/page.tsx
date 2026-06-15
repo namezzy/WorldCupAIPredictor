@@ -157,14 +157,18 @@ export default async function TeamPage({ params }: TeamPageProps) {
                           {formatShortDate(match.match_date)}
                         </p>
                       </div>
-                      {match.prediction ? (
+                      {match.status === "finished" && match.home_score !== null ? (
+                        <span className="text-sm font-bold text-foreground">
+                          {match.home_score}-{match.away_score}
+                        </span>
+                      ) : match.prediction ? (
                         <span className="text-sm font-bold text-brand-gold">
                           {match.prediction.predicted_home_score}-
                           {match.prediction.predicted_away_score}
                         </span>
                       ) : (
                         <span className="text-xs text-muted-foreground">
-                          No prediction
+                          TBD
                         </span>
                       )}
                     </div>

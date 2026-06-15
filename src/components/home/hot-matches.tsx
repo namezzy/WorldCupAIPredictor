@@ -63,19 +63,30 @@ export function HotMatches({ matches }: HotMatchesProps) {
                 </div>
 
                 <div className="px-3 text-center">
-                  {match.prediction ? (
-                    <div className="font-display text-2xl font-bold text-brand-gold">
-                      {match.prediction.predicted_home_score} -{" "}
-                      {match.prediction.predicted_away_score}
-                    </div>
+                  {match.status === "finished" && match.home_score !== null ? (
+                    <>
+                      <div className="font-display text-2xl font-bold text-foreground">
+                        {match.home_score} - {match.away_score}
+                      </div>
+                      <p className="mt-1 text-xs text-green-400">
+                        Final
+                      </p>
+                    </>
+                  ) : match.prediction ? (
+                    <>
+                      <div className="font-display text-2xl font-bold text-brand-gold">
+                        {match.prediction.predicted_home_score} -{" "}
+                        {match.prediction.predicted_away_score}
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        AI Prediction
+                      </p>
+                    </>
                   ) : (
                     <div className="font-display text-lg text-muted-foreground">
                       vs
                     </div>
                   )}
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    AI Prediction
-                  </p>
                 </div>
 
                 <div className="flex-1 text-center">

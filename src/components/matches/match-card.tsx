@@ -66,11 +66,21 @@ export function MatchCard({ match, index = 0 }: MatchCardProps) {
             </div>
 
             <div className="shrink-0 px-3 text-center">
-              {match.prediction ? (
-                <span className="font-display text-xl font-bold text-brand-gold">
-                  {match.prediction.predicted_home_score} -{" "}
-                  {match.prediction.predicted_away_score}
-                </span>
+              {match.status === "finished" && match.home_score !== null ? (
+                <div>
+                  <span className="font-display text-xl font-bold text-foreground">
+                    {match.home_score} - {match.away_score}
+                  </span>
+                  <p className="text-xs text-green-400">Final</p>
+                </div>
+              ) : match.prediction ? (
+                <div>
+                  <span className="font-display text-xl font-bold text-brand-gold">
+                    {match.prediction.predicted_home_score} -{" "}
+                    {match.prediction.predicted_away_score}
+                  </span>
+                  <p className="text-xs text-muted-foreground">Prediction</p>
+                </div>
               ) : (
                 <span className="text-muted-foreground">vs</span>
               )}
