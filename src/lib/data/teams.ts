@@ -16,6 +16,13 @@ export async function getTeamsByGroup(groupId: string): Promise<Team[]> {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
+export async function getTopRankedTeams(limit: number = 12): Promise<Team[]> {
+  return [...mockTeams]
+    .filter((team) => team.fifa_ranking !== null)
+    .sort((a, b) => (a.fifa_ranking ?? 999) - (b.fifa_ranking ?? 999))
+    .slice(0, limit);
+}
+
 export async function getTeamById(id: string): Promise<Team | null> {
   return mockTeams.find((team) => team.id === id) ?? null;
 }

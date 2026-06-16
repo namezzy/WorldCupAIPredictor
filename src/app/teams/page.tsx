@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 
-import { TeamGrid } from "@/components/teams/team-grid";
+import { TeamsContent } from "@/components/teams/teams-content";
 import { getAllTeams } from "@/lib/data/teams";
+import { getAllGroups } from "@/lib/data/groups";
 
 export const metadata: Metadata = {
   title: "Teams",
@@ -9,15 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function TeamsPage() {
-  const teams = await getAllTeams();
+  const [teams, groups] = await Promise.all([getAllTeams(), getAllGroups()]);
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-2 font-display text-4xl font-bold">Teams</h1>
-      <p className="mb-8 text-muted-foreground">
-        All 48 nations competing in the FIFA World Cup 2026
-      </p>
-      <TeamGrid teams={teams} />
-    </div>
-  );
+  return <TeamsContent teams={teams} groups={groups} />;
 }

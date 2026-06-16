@@ -2,135 +2,148 @@
 
 import Link from "next/link";
 import { animate, motion, type Variants } from "framer-motion";
-import { Calendar, Trophy, Users } from "lucide-react";
+import { Trophy, Users, Calendar, BrainCircuit, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { useI18n } from "@/lib/i18n";
 
-const stats = [
-  { icon: Users, value: 48, label: "Teams" },
-  { icon: Calendar, value: 104, label: "Matches" },
-  { icon: Trophy, value: 12, label: "Groups" },
+const statKeys = [
+  { value: 48, suffix: "", key: "teams" as const },
+  { value: 104, suffix: "", key: "matches" as const },
+  { value: 12, suffix: "", key: "groups" as const },
+  { value: 3, suffix: "+", key: "dataSources" as const },
 ];
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.12,
-    },
-  },
+  show: { opacity: 1, transition: { staggerChildren: 0.1 } },
 };
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 24 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.6,
-      ease: "easeOut",
-    },
-  },
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
 };
 
 function CountUp({ value }: { value: number }) {
-  const [displayValue, setDisplayValue] = useState(0);
-
+  const [display, setDisplay] = useState(0);
   useEffect(() => {
-    const controls = animate(0, value, {
-      duration: 1.4,
+    const c = animate(0, value, {
+      duration: 1.2,
       delay: 0.3,
       ease: "easeOut",
-      onUpdate: (latest) => {
-        setDisplayValue(Math.round(latest));
-      },
+      onUpdate: (v) => setDisplay(Math.round(v)),
     });
-
-    return () => controls.stop();
+    return () => c.stop();
   }, [value]);
-
-  return <>{displayValue}</>;
+  return <>{display}</>;
 }
 
 export function HeroSection() {
-  return (
-    <section className="relative overflow-hidden py-20 md:py-32">
-      <div className="absolute inset-0 bg-gradient-to-b from-brand-navy/20 via-background to-background" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-gold/5 via-transparent to-transparent" />
+  const { t } = useI18n();
 
-      <div className="container relative z-10 mx-auto px-4">
+  return (
+    <section className="relative overflow-hidden bg-gradient-to-br from-brand-navy via-[#0a1628] to-[#0d2b45] text-white">
+      {/* Decorative blurs */}
+      <div className="absolute left-1/4 top-0 h-96 w-96 rounded-full bg-pitch-green blur-[150px] opacity-15" />
+      <div className="absolute bottom-0 right-1/4 h-96 w-96 rounded-full bg-brand-gold blur-[150px] opacity-10" />
+      <div className="absolute left-10 top-20 h-2 w-2 animate-pulse rounded-full bg-white/20" />
+      <div className="absolute right-20 top-40 h-1.5 w-1.5 animate-pulse rounded-full bg-pitch-green/30" />
+
+      <div className="relative z-10 mx-auto max-w-[1280px] px-4 py-16 md:py-24">
         <motion.div
           initial="hidden"
           animate="show"
           variants={containerVariants}
-          className="mx-auto max-w-4xl text-center"
+          className="text-center"
         >
+          <motion.div variants={itemVariants} className="mb-6">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-1.5 text-xs font-medium backdrop-blur-sm">
+              {t.hero.badge}
+            </span>
+          </motion.div>
+
+          <motion.div variants={itemVariants} className="mb-10 flex justify-center md:mb-12">
+            <div className="relative">
+              <div className="absolute inset-0 scale-150 rounded-full bg-brand-gold opacity-30 blur-xl" />
+              <Trophy className="relative h-16 w-16 text-brand-gold drop-shadow-lg md:h-20 md:w-20" />
+            </div>
+          </motion.div>
+
           <motion.h1
             variants={itemVariants}
-            className="mb-6 font-display text-4xl font-bold md:text-6xl lg:text-7xl"
+            className="mb-4 font-display text-4xl font-bold md:text-6xl lg:text-7xl"
           >
-            <span className="text-gradient">AI Predicts</span>
-            <br />
-            <span className="text-foreground">World Cup 2026</span>
+            <span className="text-brand-gold">WorldCup AI</span>{" "}
+            <span className="text-white">{t.hero.title}</span>
           </motion.h1>
 
           <motion.p
             variants={itemVariants}
-            className="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground md:text-xl"
+            className="mx-auto mb-4 text-lg text-white/80 md:text-xl"
           >
-            Advanced AI models analyze team data, historical performance, and
-            real-time factors to predict every match of the FIFA World Cup 2026.
+            {t.hero.subtitle}
+          </motion.p>
+
+          <motion.p
+            variants={itemVariants}
+            className="mx-auto mb-10 max-w-2xl text-base leading-relaxed text-white/60 md:text-lg"
+          >
+            {t.hero.description}
           </motion.p>
 
           <motion.div
             variants={itemVariants}
-            className="mb-16 flex flex-wrap justify-center gap-4"
+            className="mb-14 flex flex-wrap justify-center gap-4"
           >
-            <Button
-              size="lg"
-              nativeButton={false}
-              className="bg-brand-gold font-semibold text-background hover:bg-brand-gold/90"
-              render={<Link href="/predictions" />}
+            <Link
+              href="/teams"
+              className="group inline-flex items-center gap-2 rounded-xl bg-pitch-green px-8 py-4 text-sm font-bold text-white shadow-[0_20px_40px_-15px_rgba(26,71,42,0.5)] transition-all hover:brightness-110"
             >
-              View Predictions
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              nativeButton={false}
-              className="border-border hover:bg-secondary"
-              render={<Link href="/matches" />}
+              <Users className="h-4 w-4" />
+              {t.hero.browseTeams}
+              <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+            <Link
+              href="/schedule"
+              className="group inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-8 py-4 text-sm font-bold text-white transition-all hover:bg-white/10"
             >
-              Browse Matches
-            </Button>
+              <Calendar className="h-4 w-4" />
+              {t.hero.viewSchedule}
+              <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+            <Link
+              href="/live"
+              className="group inline-flex items-center gap-2 rounded-xl border border-brand-gold/40 bg-brand-gold/10 px-8 py-4 text-sm font-bold text-white transition-all hover:bg-brand-gold/20"
+            >
+              <BrainCircuit className="h-4 w-4 text-brand-gold" />
+              {t.hero.aiPredictions}
+              <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </motion.div>
+
+          <motion.div
+            variants={itemVariants}
+            className="mx-auto grid max-w-3xl grid-cols-2 gap-4 md:grid-cols-4"
+          >
+            {statKeys.map((stat) => (
+              <div
+                key={stat.key}
+                className="rounded-xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-sm transition-all hover:bg-white/10"
+              >
+                <div className="font-display text-3xl font-bold text-white md:text-4xl">
+                  <CountUp value={stat.value} />
+                  {stat.suffix}
+                </div>
+                <div className="mt-1 text-xs text-white/60">
+                  {t.hero.stats[stat.key]}
+                </div>
+              </div>
+            ))}
           </motion.div>
         </motion.div>
-
-        <motion.div
-          initial="hidden"
-          animate="show"
-          variants={containerVariants}
-          className="mx-auto grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-3 md:gap-8"
-        >
-          {stats.map((stat) => (
-            <motion.div
-              key={stat.label}
-              variants={itemVariants}
-              className="glass-card hover-glow p-4 text-center md:p-6"
-            >
-              <stat.icon className="mx-auto mb-2 h-6 w-6 text-brand-gold md:h-8 md:w-8" />
-              <div className="font-display text-2xl font-bold text-foreground md:text-4xl">
-                <CountUp value={stat.value} />
-              </div>
-              <div className="mt-1 text-xs text-muted-foreground md:text-sm">
-                {stat.label}
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
       </div>
+
+      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent" />
     </section>
   );
 }

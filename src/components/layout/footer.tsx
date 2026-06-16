@@ -1,17 +1,21 @@
+"use client";
+
 import Link from "next/link";
 import { Trophy, Globe, MessageCircle } from "lucide-react";
 
-const footerLinks = [
-  { label: "Schedule", href: "/schedule" },
-  { label: "Matches", href: "/matches" },
-  { label: "Teams", href: "/teams" },
-  { label: "Groups", href: "/groups" },
-  { label: "Predictions", href: "/predictions" },
-  { label: "Leaderboard", href: "/leaderboard" },
-  { label: "Community", href: "/community" },
+import { useI18n } from "@/lib/i18n";
+
+const footerNavKeys = [
+  { key: "schedule" as const, href: "/schedule" },
+  { key: "matches" as const, href: "/matches" },
+  { key: "teams" as const, href: "/teams" },
+  { key: "live" as const, href: "/live" },
+  { key: "leaderboard" as const, href: "/leaderboard" },
 ];
 
 export function Footer() {
+  const { t } = useI18n();
+
   return (
     <footer className="border-t border-border/40 bg-background/50">
       <div className="container mx-auto px-4 py-12">
@@ -22,21 +26,20 @@ export function Footer() {
               <span className="font-display text-lg font-bold">WorldCup AI</span>
             </div>
             <p className="max-w-xs text-sm text-muted-foreground">
-              AI-powered World Cup 2026 predictions. Analyze matches, compete
-              with friends, and climb the leaderboard.
+              {t.footer.description}
             </p>
           </div>
 
           <div>
-            <h3 className="mb-4 text-sm font-semibold">Navigation</h3>
+            <h3 className="mb-4 text-sm font-semibold">{t.footer.navigation}</h3>
             <ul className="space-y-2">
-              {footerLinks.map((link) => (
+              {footerNavKeys.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
                     className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                   >
-                    {link.label}
+                    {t.nav[link.key]}
                   </Link>
                 </li>
               ))}
@@ -44,7 +47,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="mb-4 text-sm font-semibold">Connect</h3>
+            <h3 className="mb-4 text-sm font-semibold">{t.footer.connect}</h3>
             <div className="flex gap-3">
               <a
                 href="#"
@@ -66,8 +69,7 @@ export function Footer() {
 
         <div className="mt-8 border-t border-border/40 pt-8 text-center">
           <p className="text-xs text-muted-foreground">
-            © 2026 WorldCup AI Predictor. Built with AI. Not affiliated with
-            FIFA.
+            {t.footer.copyright}
           </p>
         </div>
       </div>

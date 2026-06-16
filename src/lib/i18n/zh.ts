@@ -1,0 +1,70 @@
+import { Dictionary } from "./en";
+
+export const zh: Dictionary = {
+  nav: {
+    home: "首页",
+    schedule: "赛程",
+    matches: "比赛",
+    groups: "小组",
+    teams: "队伍",
+    predictions: "预测",
+    live: "实时",
+    leaderboard: "排行榜",
+    signIn: "登录",
+  },
+  hero: {
+    badge: "2026 FIFA 世界杯",
+    title: "世界杯观赛中心",
+    subtitle: "赛程、球队、淘汰赛与预测，一站看全",
+    description: "从小组赛到决赛，跟进每一场比赛、每一支球队和关键情报。",
+    browseTeams: "浏览 48 支队伍",
+    viewSchedule: "查看赛程",
+    aiPredictions: "观看 AI 赛前预测",
+    stats: {
+      teams: "参赛队伍",
+      matches: "比赛场次",
+      groups: "小组",
+      dataSources: "数据源",
+    },
+  },
+  home: {
+    featured: "⚡ 焦点前瞻",
+    featuredBadge: "参与焦点战比分预测！",
+    featuredDesc:
+      "这场即将开打的对决，谁能笑到最后？给出你的比分预测，角逐社区排行榜。",
+    hotMatches: "🔥 AI 预测精选",
+    viewAll: "查看全部 →",
+    upcoming: "📅 即将进行的比赛",
+    upcomingHint: "点击查看详情",
+    fullSchedule: "全部赛程 →",
+    topTeams: "🏆 FIFA 排名前列",
+    topTeamsHint: "点击队伍查看详情",
+    allTeams: "全部队伍 →",
+    groups: "📊 小组分布",
+    groupsDesc: "12 个小组，48 支队伍",
+    viewAllGroups: "查看全部 →",
+    ctaTitle: "准备好开始了吗？",
+    ctaDesc:
+      "浏览全部 48 支参赛队伍，查看完整赛程、淘汰赛路线和比赛分析",
+    ctaExplore: "开始探索",
+    ctaSchedule: "查看赛程",
+    noMatches: "暂无即将进行的比赛。",
+    noPredictions: "暂无预测数据。",
+    vs: "VS",
+    home: "主队",
+    draw: "平局",
+    away: "客队",
+    aiPrediction: "AI 预测",
+    final: "完场",
+    group: "组",
+    confidence: "置信度",
+  },
+  footer: {
+    description:
+      "AI 驱动的 2026 世界杯预测。分析比赛、与朋友竞猜，攀登排行榜。",
+    navigation: "导航",
+    connect: "联系",
+    copyright:
+      "© 2026 WorldCup AI Predictor. AI 构建，与 FIFA 无关。",
+  },
+};

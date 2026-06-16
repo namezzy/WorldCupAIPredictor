@@ -7,6 +7,8 @@ import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { getConfidenceColor, getFlagUrl } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
+import { getTeamName } from "@/lib/i18n/teams";
 import { MatchWithDetails } from "@/types";
 
 interface HotMatchesProps {
@@ -14,10 +16,12 @@ interface HotMatchesProps {
 }
 
 export function HotMatches({ matches }: HotMatchesProps) {
+  const { locale, t } = useI18n();
+
   if (matches.length === 0) {
     return (
       <p className="py-8 text-center text-muted-foreground">
-        No predictions available yet.
+        {t.home.noPredictions}
       </p>
     );
   }
@@ -36,12 +40,12 @@ export function HotMatches({ matches }: HotMatchesProps) {
               {match.prediction && (
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <Badge variant="secondary" className="text-xs">
-                    {match.group ? `Group ${match.group.name}` : "Knockout"}
+                    {match.group ? `${t.home.group} ${match.group.name}` : "Knockout"}
                   </Badge>
                   <span
                     className={`text-xs font-semibold ${getConfidenceColor(match.prediction.confidence)}`}
                   >
-                    {match.prediction.confidence}% confidence
+                    {match.prediction.confidence}% {t.home.confidence}
                   </span>
                 </div>
               )}
@@ -51,14 +55,14 @@ export function HotMatches({ matches }: HotMatchesProps) {
                   <div className="relative mx-auto mb-2 h-12 w-12 overflow-hidden rounded-sm">
                     <Image
                       src={getFlagUrl(match.home_team.code)}
-                      alt={match.home_team.name}
+                      alt={getTeamName(match.home_team.name, locale)}
                       fill
                       className="object-cover"
                       unoptimized
                     />
                   </div>
                   <p className="truncate text-sm font-medium">
-                    {match.home_team.name}
+                    {getTeamName(match.home_team.name, locale)}
                   </p>
                 </div>
 
@@ -69,7 +73,7 @@ export function HotMatches({ matches }: HotMatchesProps) {
                         {match.home_score} - {match.away_score}
                       </div>
                       <p className="mt-1 text-xs text-green-400">
-                        Final
+                        {t.home.final}
                       </p>
                     </>
                   ) : match.prediction ? (
@@ -79,7 +83,7 @@ export function HotMatches({ matches }: HotMatchesProps) {
                         {match.prediction.predicted_away_score}
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        AI Prediction
+                        {t.home.aiPrediction}
                       </p>
                     </>
                   ) : (
@@ -93,14 +97,14 @@ export function HotMatches({ matches }: HotMatchesProps) {
                   <div className="relative mx-auto mb-2 h-12 w-12 overflow-hidden rounded-sm">
                     <Image
                       src={getFlagUrl(match.away_team.code)}
-                      alt={match.away_team.name}
+                      alt={getTeamName(match.away_team.name, locale)}
                       fill
                       className="object-cover"
                       unoptimized
                     />
                   </div>
                   <p className="truncate text-sm font-medium">
-                    {match.away_team.name}
+                    {getTeamName(match.away_team.name, locale)}
                   </p>
                 </div>
               </div>
@@ -127,9 +131,9 @@ export function HotMatches({ matches }: HotMatchesProps) {
                     />
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Home</span>
-                    <span>Draw</span>
-                    <span>Away</span>
+                    <span>{t.home.home}</span>
+                    <span>{t.home.draw}</span>
+                    <span>{t.home.away}</span>
                   </div>
                 </div>
               )}

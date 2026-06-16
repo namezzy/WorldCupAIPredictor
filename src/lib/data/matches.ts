@@ -51,6 +51,23 @@ export async function getHotMatches(): Promise<MatchWithDetails[]> {
     .slice(0, 6);
 }
 
+export async function getUpcomingMatches(
+  limit: number = 8
+): Promise<MatchWithDetails[]> {
+  return [...mockMatches]
+    .filter((match) => match.status === "scheduled")
+    .sort(
+      (a, b) =>
+        new Date(a.match_date).getTime() - new Date(b.match_date).getTime()
+    )
+    .slice(0, limit);
+}
+
+export async function getFeaturedMatch(): Promise<MatchWithDetails | null> {
+  const upcoming = await getUpcomingMatches(1);
+  return upcoming[0] ?? null;
+}
+
 export async function getMatchesByTeam(
   teamId: string
 ): Promise<MatchWithDetails[]> {

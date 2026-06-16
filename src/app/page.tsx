@@ -1,27 +1,28 @@
-import Link from "next/link";
-
-import { HeroSection } from "@/components/home/hero-section";
-import { HotMatches } from "@/components/home/hot-matches";
-import { getHotMatches } from "@/lib/data/matches";
+import { HomeContent } from "@/components/home/home-content";
+import {
+  getUpcomingMatches,
+  getFeaturedMatch,
+} from "@/lib/data/matches";
+import { getTopRankedTeams } from "@/lib/data/teams";
+import { getAllGroups, getAllGroupsWithStandings } from "@/lib/data/groups";
 
 export default async function HomePage() {
-  const hotMatches = await getHotMatches();
+  const [upcomingMatches, featuredMatch, topTeams, groups, groupsWithStandings] =
+    await Promise.all([
+      getUpcomingMatches(8),
+      getFeaturedMatch(),
+      getTopRankedTeams(12),
+      getAllGroups(),
+      getAllGroupsWithStandings(),
+    ]);
 
   return (
-    <div className="space-y-16 pb-16">
-      <HeroSection />
-      <section className="container mx-auto px-4">
-        <div className="mb-8 flex items-center justify-between gap-4">
-          <h2 className="font-display text-3xl font-bold">🔥 Hot Matches</h2>
-          <Link
-            href="/matches"
-            className="text-sm text-brand-gold transition-colors hover:text-brand-gold/80 hover:underline"
-          >
-            View all →
-          </Link>
-        </div>
-        <HotMatches matches={hotMatches} />
-      </section>
-    </div>
+    <HomeContent
+      upcomingMatches={upcomingMatches}
+      featuredMatch={featuredMatch}
+      topTeams={topTeams}
+      groups={groups}
+      groupsWithStandings={groupsWithStandings}
+    />
   );
 }
