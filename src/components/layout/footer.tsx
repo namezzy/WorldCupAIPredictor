@@ -6,9 +6,9 @@ import { Trophy, Globe, MessageCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 const footerNavKeys = [
-  { key: "schedule" as const, href: "/schedule" },
-  { key: "matches" as const, href: "/matches" },
   { key: "teams" as const, href: "/teams" },
+  { key: "bracket" as const, href: "/bracket" },
+  { key: "schedule" as const, href: "/schedule" },
   { key: "live" as const, href: "/live" },
   { key: "leaderboard" as const, href: "/leaderboard" },
 ];

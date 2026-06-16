@@ -14,9 +14,9 @@ import { useI18n, type Locale } from "@/lib/i18n";
 
 const navKeys = [
   { key: "home" as const, href: "/" },
-  { key: "schedule" as const, href: "/schedule" },
-  { key: "matches" as const, href: "/matches" },
   { key: "teams" as const, href: "/teams" },
+  { key: "bracket" as const, href: "/bracket" },
+  { key: "schedule" as const, href: "/schedule" },
   { key: "live" as const, href: "/live" },
   { key: "leaderboard" as const, href: "/leaderboard" },
 ];

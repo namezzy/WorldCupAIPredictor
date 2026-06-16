@@ -7,6 +7,7 @@ export const en = {
     teams: "Teams",
     predictions: "Predictions",
     live: "Live",
+    bracket: "Bracket",
     leaderboard: "Leaderboard",
     signIn: "Sign In",
   },
@@ -77,6 +78,7 @@ export type Dictionary = {
     teams: string;
     predictions: string;
     live: string;
+    bracket: string;
     leaderboard: string;
     signIn: string;
   };

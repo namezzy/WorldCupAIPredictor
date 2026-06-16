@@ -9,6 +9,7 @@ export const zh: Dictionary = {
     teams: "队伍",
     predictions: "预测",
     live: "实时",
+    bracket: "淘汰赛图",
     leaderboard: "排行榜",
     signIn: "登录",
   },
