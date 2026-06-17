@@ -1,6 +1,6 @@
 import { MatchWithDetails } from "@/types";
 
-import { mockMatches } from "./mock-data";
+import { getLiveData } from "./worldcup-api";
 
 interface GetAllMatchesFilters {
   stage?: string;
@@ -8,12 +8,17 @@ interface GetAllMatchesFilters {
   date?: string;
 }
 
+async function allMatches(): Promise<MatchWithDetails[]> {
+  const { matches } = await getLiveData();
+  return matches;
+}
+
 export async function getAllMatches(
   filters: GetAllMatchesFilters = {}
 ): Promise<MatchWithDetails[]> {
   const { stage, groupId, date } = filters;
 
-  return mockMatches
+  return (await allMatches())
     .filter((match) => {
       if (stage && match.stage !== stage) {
         return false;
@@ -38,11 +43,11 @@ export async function getAllMatches(
 export async function getMatchById(
   id: string
 ): Promise<MatchWithDetails | null> {
-  return mockMatches.find((match) => match.id === id) ?? null;
+  return (await allMatches()).find((match) => match.id === id) ?? null;
 }
 
 export async function getHotMatches(): Promise<MatchWithDetails[]> {
-  return [...mockMatches]
+  return [...(await allMatches())]
     .filter((match) => match.prediction)
     .sort(
       (a, b) =>
@@ -54,7 +59,7 @@ export async function getHotMatches(): Promise<MatchWithDetails[]> {
 export async function getUpcomingMatches(
   limit: number = 8
 ): Promise<MatchWithDetails[]> {
-  return [...mockMatches]
+  return [...(await allMatches())]
     .filter((match) => match.status === "scheduled")
     .sort(
       (a, b) =>
@@ -71,7 +76,7 @@ export async function getFeaturedMatch(): Promise<MatchWithDetails | null> {
 export async function getMatchesByTeam(
   teamId: string
 ): Promise<MatchWithDetails[]> {
-  return mockMatches
+  return (await allMatches())
     .filter(
       (match) => match.home_team_id === teamId || match.away_team_id === teamId
     )

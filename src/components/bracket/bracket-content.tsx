@@ -1,182 +1,332 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { Trophy } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
+import { useLiveMatches } from "@/lib/hooks/use-live-matches";
+import { getTeamName } from "@/lib/i18n/teams";
+import { cn, getFlagUrl } from "@/lib/utils";
+import type { MatchWithDetails, Team } from "@/types";
 import {
-  type BracketMatch,
-  leftR32, leftR16, leftQF, leftSF,
-  rightR32, rightR16, rightQF, rightSF,
-  finalMatch, thirdPlace, roundLabels,
+  type KoMatch,
+  koMatchById,
+  slotLabel,
+  LEFT_ROOT,
+  RIGHT_ROOT,
+  FINAL_ID,
+  THIRD_PLACE_ID,
 } from "./bracket-data";
 
 const H = 800;
+const CONNECTOR_W = 48;
 
-// Y positions for each match count (evenly distributed, centered)
-const Y8 = [50, 150, 250, 350, 450, 550, 650, 750];
-const Y4 = [100, 300, 500, 700];
-const Y2 = [200, 600];
-const Y1 = [400];
+/** Build the 4 columns [R32, R16, QF, SF] for one half by walking the win tree. */
+function buildColumns(rootId: number): KoMatch[][] {
+  const cols: KoMatch[][] = [[], [], [], []];
+  const walk = (id: number, depth: number) => {
+    const match = koMatchById.get(id);
+    if (!match) return;
+    const feed = (token: string) => {
+      if (/^W\d+$/.test(token)) walk(Number(token.slice(1)), depth + 1);
+    };
+    feed(match.homeId);
+    feed(match.awayId);
+    const col = 3 - depth;
+    if (col >= 0 && col <= 3) cols[col].push(match);
+  };
+  walk(rootId, 0);
+  return cols;
+}
 
-// All 8 SVG connector path sets (exact copy from cupgol.com)
-const svgPaths: string[][] = [
-  // SVG 0: 8→4 (left R32→R16)
-  [
-    "M 0 50 C 24 50, 24 100, 48 100",   "M 0 150 C 24 150, 24 100, 48 100",
-    "M 0 250 C 24 250, 24 300, 48 300", "M 0 350 C 24 350, 24 300, 48 300",
-    "M 0 450 C 24 450, 24 500, 48 500", "M 0 550 C 24 550, 24 500, 48 500",
-    "M 0 650 C 24 650, 24 700, 48 700", "M 0 750 C 24 750, 24 700, 48 700",
-  ],
-  // SVG 1: 4→2 (left R16→QF)
-  [
-    "M 0 100 C 24 100, 24 200, 48 200", "M 0 300 C 24 300, 24 200, 48 200",
-    "M 0 500 C 24 500, 24 600, 48 600", "M 0 700 C 24 700, 24 600, 48 600",
-  ],
-  // SVG 2: 2→1 (left QF→SF)
-  ["M 0 200 C 24 200, 24 400, 48 400", "M 0 600 C 24 600, 24 400, 48 400"],
-  // SVG 3: 1→2 (left SF→Center)
-  ["M 0 400 C 24 400, 24 200, 48 200", "M 0 400 C 24 400, 24 600, 48 600"],
-  // SVG 4: 2→1 (Center→right SF)
-  ["M 0 200 C 24 200, 24 400, 48 400", "M 0 600 C 24 600, 24 400, 48 400"],
-  // SVG 5: 1→2 (right SF→QF)
-  ["M 0 400 C 24 400, 24 200, 48 200", "M 0 400 C 24 400, 24 600, 48 600"],
-  // SVG 6: 2→4 (right QF→R16)
-  [
-    "M 0 200 C 24 200, 24 100, 48 100", "M 0 200 C 24 200, 24 300, 48 300",
-    "M 0 600 C 24 600, 24 500, 48 500", "M 0 600 C 24 600, 24 700, 48 700",
-  ],
-  // SVG 7: 4→8 (right R16→R32)
-  [
-    "M 0 100 C 24 100, 24 50, 48 50",   "M 0 100 C 24 100, 24 150, 48 150",
-    "M 0 300 C 24 300, 24 250, 48 250", "M 0 300 C 24 300, 24 350, 48 350",
-    "M 0 500 C 24 500, 24 450, 48 450", "M 0 500 C 24 500, 24 550, 48 550",
-    "M 0 700 C 24 700, 24 650, 48 650", "M 0 700 C 24 700, 24 750, 48 750",
-  ],
-];
+/** Whether two matches are directly connected (one feeds the other). */
+function isConnected(a: KoMatch, b: KoMatch): boolean {
+  const refs = (m: KoMatch) => [m.homeId, m.awayId];
+  if (refs(b).includes(`W${a.id}`) || refs(b).includes(`L${a.id}`)) return true;
+  if (refs(a).includes(`W${b.id}`) || refs(a).includes(`L${b.id}`)) return true;
+  return false;
+}
 
-function SvgConnector({ index }: { index: number }) {
+function Connector({
+  leftMatches,
+  rightMatches,
+  hoveredId,
+}: {
+  leftMatches: KoMatch[];
+  rightMatches: KoMatch[];
+  hoveredId: number | null;
+}) {
+  const paths = useMemo(() => {
+    const out: { d: string; active: boolean }[] = [];
+    const la = leftMatches.length;
+    const ra = rightMatches.length;
+    leftMatches.forEach((s, i) => {
+      rightMatches.forEach((n, d) => {
+        if (!isConnected(s, n)) return;
+        const sy = (H / la) * (i + 0.5);
+        const ty = (H / ra) * (d + 0.5);
+        const half = CONNECTOR_W / 2;
+        const dStr = `M 0 ${sy} C ${half} ${sy}, ${half} ${ty}, ${CONNECTOR_W} ${ty}`;
+        const active = hoveredId === s.id || hoveredId === n.id;
+        out.push({ d: dStr, active });
+      });
+    });
+    return out;
+  }, [leftMatches, rightMatches, hoveredId]);
+
   return (
     <svg
-      width={48}
+      width={CONNECTOR_W}
       height={H}
       className="shrink-0 pointer-events-none select-none overflow-visible z-0"
     >
-      {svgPaths[index].map((d, i) => (
+      {paths.map((p, i) => (
         <path
           key={i}
-          d={d}
+          d={p.d}
           fill="none"
-          stroke="hsl(var(--border))"
-          strokeWidth="1.2"
-          opacity="0.4"
+          stroke={p.active ? "#22c55e" : "hsl(var(--border))"}
+          strokeWidth={p.active ? 2.5 : 1.2}
+          opacity={p.active ? 0.95 : 0.25}
           className="transition-all duration-300"
+          style={{
+            filter: p.active ? "drop-shadow(0 0 4px #22c55e)" : "none",
+          }}
         />
       ))}
     </svg>
   );
 }
 
-function MatchCard({ match, locale }: { match: BracketMatch; locale: string }) {
-  const home = locale === "zh" ? match.homeLabel.zh : match.homeLabel.en;
-  const away = locale === "zh" ? match.awayLabel.zh : match.awayLabel.en;
+function fmtDate(iso: string): { date: string; time: string } {
+  const m = iso.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if (!m) return { date: "", time: "" };
+  return { date: `${m[2]}/${m[3]}`, time: `${m[4]}:${m[5]}` };
+}
+
+function TeamRow({
+  label,
+  team,
+  locale,
+  score,
+  showScore,
+  win,
+  loss,
+}: {
+  label: string;
+  team: Team | null;
+  locale: string;
+  score: number | null;
+  showScore: boolean;
+  win: boolean;
+  loss: boolean;
+}) {
+  const flag = team ? team.flag_url || getFlagUrl(team.code) : null;
+  return (
+    <div className="flex items-center justify-between px-2.5 py-1.5 transition-colors duration-200 hover:bg-secondary/30">
+      <div className="flex items-center gap-2 min-w-0">
+        {team && flag ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={flag}
+            alt={team.code}
+            className="w-5 h-3.5 object-cover rounded-[2px] shrink-0 border border-white/10"
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-5 h-3.5 border border-dashed border-foreground/20 rounded-[2px] bg-foreground/5 flex items-center justify-center shrink-0">
+            <span className="text-[7px] text-muted-foreground/40">?</span>
+          </div>
+        )}
+        <span
+          className={cn(
+            "font-medium text-xs truncate",
+            team
+              ? win
+                ? "font-bold text-foreground"
+                : loss
+                  ? "text-muted-foreground/50"
+                  : "text-foreground"
+              : "text-muted-foreground/60 italic"
+          )}
+        >
+          {team ? getTeamName(team.name, locale) : label}
+        </span>
+      </div>
+      {showScore && score !== null && (
+        <span
+          className={cn(
+            "font-mono text-xs font-bold px-1.5 py-0.5 rounded-sm select-none shrink-0",
+            win ? "text-green-500 bg-green-500/10" : "text-muted-foreground/60"
+          )}
+        >
+          {score}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function MatchCard({
+  match,
+  locale,
+  hovered,
+  onHover,
+  live,
+}: {
+  match: KoMatch;
+  locale: string;
+  hovered: boolean;
+  onHover: (id: number | null) => void;
+  live: MatchWithDetails | undefined;
+}) {
+  const status = live?.status ?? "scheduled";
+  const isLive = status === "live";
+  const showScore = status === "finished" || status === "live";
+
+  const homeTeam = live && live.home_team_id ? live.home_team : null;
+  const awayTeam = live && live.away_team_id ? live.away_team : null;
+  const homeScore = live?.home_score ?? null;
+  const awayScore = live?.away_score ?? null;
+
+  const decided =
+    showScore && homeScore !== null && awayScore !== null && homeScore !== awayScore;
+  const homeWin = decided && homeScore! > awayScore!;
+  const awayWin = decided && awayScore! > homeScore!;
+
+  const dt = live ? fmtDate(live.match_date) : { date: match.date, time: match.time };
 
   return (
-    <a className="block w-[185px] relative z-10 transition-all duration-300 hover:scale-[1.02]">
-      <div className="backdrop-blur-md border rounded-xl overflow-hidden shadow-lg transition-all duration-300 bg-card/75 border-border/50">
+    <div
+      onMouseEnter={() => onHover(match.id)}
+      onMouseLeave={() => onHover(null)}
+      className={`block w-[185px] relative z-10 transition-all duration-300 ${
+        hovered ? "scale-[1.04]" : "hover:scale-[1.02]"
+      }`}
+    >
+      <div
+        className={cn(
+          "backdrop-blur-md border rounded-xl overflow-hidden shadow-lg transition-all duration-300",
+          isLive
+            ? "bg-red-500/5 border-red-500/40 shadow-[0_0_12px_rgba(239,68,68,0.18)]"
+            : hovered
+              ? "bg-card/95 border-brand-gold/40 shadow-[0_0_15px_rgba(212,175,55,0.18)]"
+              : "bg-card/75 border-border/50"
+        )}
+      >
         {/* Header */}
-        <div className="px-2.5 py-1.5 text-[10px] flex justify-between items-center border-b font-medium bg-secondary/50 border-border/40 text-muted-foreground">
-          <span className="font-mono font-bold tracking-wider opacity-85">#{match.id}</span>
+        <div
+          className={cn(
+            "px-2.5 py-1.5 text-[10px] flex justify-between items-center border-b font-medium",
+            isLive
+              ? "bg-red-500/10 border-red-500/20 text-red-400"
+              : "bg-secondary/50 border-border/40 text-muted-foreground"
+          )}
+        >
+          <span className="font-mono font-bold tracking-wider opacity-85">
+            #{match.id}
+          </span>
           <div className="flex items-center gap-1.5">
-            <span>{match.date}</span>
+            {isLive ? (
+              <>
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                <span className="font-bold tracking-widest text-[9px] uppercase animate-pulse">
+                  LIVE
+                </span>
+              </>
+            ) : (
+              <span>
+                {dt.date} {dt.time}
+              </span>
+            )}
           </div>
         </div>
         {/* Teams */}
         <div className="flex flex-col py-1">
-          <div className="flex items-center justify-between px-2.5 py-1.5 transition-colors duration-200 cursor-pointer hover:bg-secondary/30">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="w-5 h-3.5 border border-dashed border-foreground/20 rounded-[2px] bg-foreground/5 flex items-center justify-center shrink-0">
-                <span className="text-[7px] text-muted-foreground/40">?</span>
-              </div>
-              <span className="font-medium text-xs truncate text-muted-foreground/60 italic">{home}</span>
-            </div>
-          </div>
-          <div className="flex items-center justify-between px-2.5 py-1.5 transition-colors duration-200 cursor-pointer hover:bg-secondary/30">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="w-5 h-3.5 border border-dashed border-foreground/20 rounded-[2px] bg-foreground/5 flex items-center justify-center shrink-0">
-                <span className="text-[7px] text-muted-foreground/40">?</span>
-              </div>
-              <span className="font-medium text-xs truncate text-muted-foreground/60 italic">{away}</span>
-            </div>
-          </div>
+          <TeamRow
+            label={slotLabel(match.homeId, locale)}
+            team={homeTeam}
+            locale={locale}
+            score={homeScore}
+            showScore={showScore}
+            win={homeWin}
+            loss={awayWin}
+          />
+          <TeamRow
+            label={slotLabel(match.awayId, locale)}
+            team={awayTeam}
+            locale={locale}
+            score={awayScore}
+            showScore={showScore}
+            win={awayWin}
+            loss={homeWin}
+          />
         </div>
       </div>
-    </a>
+    </div>
   );
 }
 
-function RoundColumn({
+function Column({
   matches,
-  positions,
   locale,
-  className: extraClass,
+  hoveredId,
+  onHover,
+  liveById,
+  extraClass,
 }: {
-  matches: BracketMatch[];
-  positions: number[];
+  matches: KoMatch[];
   locale: string;
-  className?: string;
+  hoveredId: number | null;
+  onHover: (id: number | null) => void;
+  liveById: Map<number, MatchWithDetails>;
+  extraClass?: string;
 }) {
   return (
     <div
-      className={`flex flex-col justify-around shrink-0 ${extraClass ?? ""}`}
-      style={{ height: H }}
+      className={`flex flex-col justify-around h-full shrink-0 ${extraClass ?? ""}`}
     >
-      {matches.map((m, i) => (
-        <div
+      {matches.map((m) => (
+        <MatchCard
           key={m.id}
-          className="absolute"
-          style={{ top: positions[i] - 40 }}
-        >
-          <MatchCard match={m} locale={locale} />
-        </div>
+          match={m}
+          locale={locale}
+          hovered={hoveredId === m.id}
+          onHover={onHover}
+          live={liveById.get(m.id)}
+        />
       ))}
     </div>
   );
 }
 
-// Use absolute positioning for precise Y placement
-function AbsoluteColumn({
-  matches,
-  positions,
-  locale,
-  extraClass,
+export function BracketContent({
+  initialMatches = [],
 }: {
-  matches: BracketMatch[];
-  positions: number[];
-  locale: string;
-  extraClass?: string;
+  initialMatches?: MatchWithDetails[];
 }) {
-  return (
-    <div className={`relative shrink-0 ${extraClass ?? ""}`} style={{ height: H, width: 185 }}>
-      {matches.map((m, i) => {
-        const cardHeight = 80;
-        const top = positions[i] - cardHeight / 2;
-        return (
-          <div key={m.id} className="absolute left-0 right-0" style={{ top }}>
-            <MatchCard match={m} locale={locale} />
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-export function BracketContent() {
   const { locale } = useI18n();
+  const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const { matches, updatedAt } = useLiveMatches(initialMatches);
 
-  const rl = (key: keyof typeof roundLabels) =>
-    locale === "zh" ? roundLabels[key].zh : roundLabels[key].en;
+  const liveById = useMemo(() => {
+    const map = new Map<number, MatchWithDetails>();
+    for (const m of matches) {
+      const id = Number(m.id);
+      if (Number.isFinite(id)) map.set(id, m);
+    }
+    return map;
+  }, [matches]);
 
-  const centerMatches = [finalMatch, thirdPlace];
+  const { leftCols, rightCols, centerCol } = useMemo(() => {
+    const left = buildColumns(LEFT_ROOT);
+    const right = buildColumns(RIGHT_ROOT);
+    const center = [
+      koMatchById.get(FINAL_ID),
+      koMatchById.get(THIRD_PLACE_ID),
+    ].filter(Boolean) as KoMatch[];
+    return { leftCols: left, rightCols: right, centerCol: center };
+  }, []);
 
   return (
     <div className="mx-auto max-w-[1280px] px-4 py-8">
@@ -186,44 +336,81 @@ export function BracketContent() {
         <h1 className="font-display text-3xl font-bold md:text-4xl">
           {locale === "zh" ? "淘汰赛对阵图" : "Knockout Bracket"}
         </h1>
+        {updatedAt && (
+          <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+            {locale === "zh" ? "实时" : "Live"} ·{" "}
+            {updatedAt.toLocaleTimeString(locale === "zh" ? "zh-CN" : "en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </span>
+        )}
       </div>
       <p className="mb-6 text-sm text-muted-foreground">
         {locale === "zh"
-          ? "32强单败淘汰制赛程，左右拖动查看完整的冠军晋级路线。"
-          : "32-team single elimination bracket. Scroll horizontally to see the full path to the title."}
+          ? "32强单败淘汰制赛程，左右拖动查看完整的冠军晋级路线，悬停比赛可高亮晋级路径。比分实时更新。"
+          : "32-team single elimination bracket. Scroll horizontally and hover a match to highlight its path. Scores update live."}
       </p>
 
       {/* Scrollable bracket */}
       <div className="overflow-x-auto pb-8 pt-4">
-        <div className="flex min-w-max px-8 items-center justify-center mx-auto">
-          <div className="flex items-center" style={{ height: H }}>
-            {/* Left R32 (8) */}
-            <AbsoluteColumn matches={leftR32} positions={Y8} locale={locale} />
-            <SvgConnector index={0} />
-            {/* Left R16 (4) */}
-            <AbsoluteColumn matches={leftR16} positions={Y4} locale={locale} />
-            <SvgConnector index={1} />
-            {/* Left QF (2) */}
-            <AbsoluteColumn matches={leftQF} positions={Y2} locale={locale} />
-            <SvgConnector index={2} />
-            {/* Left SF (1) */}
-            <AbsoluteColumn matches={leftSF} positions={Y1} locale={locale} />
-            <SvgConnector index={3} />
-            {/* Center: Final + 3rd (2) */}
-            <AbsoluteColumn matches={centerMatches} positions={Y2} locale={locale} extraClass="z-10 px-2" />
-            <SvgConnector index={4} />
-            {/* Right SF (1) */}
-            <AbsoluteColumn matches={rightSF} positions={Y1} locale={locale} />
-            <SvgConnector index={5} />
-            {/* Right QF (2) */}
-            <AbsoluteColumn matches={rightQF} positions={Y2} locale={locale} />
-            <SvgConnector index={6} />
-            {/* Right R16 (4) */}
-            <AbsoluteColumn matches={rightR16} positions={Y4} locale={locale} />
-            <SvgConnector index={7} />
-            {/* Right R32 (8) */}
-            <AbsoluteColumn matches={rightR32} positions={Y8} locale={locale} />
-          </div>
+        <div
+          className="flex min-w-max px-8 items-center justify-center mx-auto"
+          style={{ height: H }}
+        >
+          {/* Left half: columns each followed by their connector */}
+          {leftCols.map((col, c) => (
+            <div key={`left-${c}`} className="flex items-center h-full">
+              <Column
+                matches={col}
+                locale={locale}
+                hoveredId={hoveredId}
+                onHover={setHoveredId}
+                liveById={liveById}
+              />
+              <Connector
+                leftMatches={col}
+                rightMatches={leftCols[c + 1] ?? centerCol}
+                hoveredId={hoveredId}
+              />
+            </div>
+          ))}
+
+          {/* Center: Final + 3rd place */}
+          <Column
+            matches={centerCol}
+            locale={locale}
+            hoveredId={hoveredId}
+            onHover={setHoveredId}
+            liveById={liveById}
+            extraClass="z-10 px-2"
+          />
+
+          {/* Right half: connector then column, mirrored */}
+          {rightCols
+            .slice()
+            .reverse()
+            .map((col, n) => {
+              const c = 3 - n;
+              const inner = c === 3 ? centerCol : rightCols[c + 1];
+              return (
+                <div key={`right-${c}`} className="flex items-center h-full">
+                  <Connector
+                    leftMatches={inner}
+                    rightMatches={col}
+                    hoveredId={hoveredId}
+                  />
+                  <Column
+                    matches={col}
+                    locale={locale}
+                    hoveredId={hoveredId}
+                    onHover={setHoveredId}
+                    liveById={liveById}
+                  />
+                </div>
+              );
+            })}
         </div>
       </div>
     </div>

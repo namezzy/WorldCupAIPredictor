@@ -3,19 +3,22 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo } from "react";
-import { Radio, Clock, MapPin } from "lucide-react";
+import { Radio, Clock, MapPin, RefreshCw } from "lucide-react";
 
 import { getFlagUrl } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { getTeamName } from "@/lib/i18n/teams";
+import { useLiveMatches } from "@/lib/hooks/use-live-matches";
 import type { MatchWithDetails } from "@/types";
 
 interface LiveContentProps {
   matches: MatchWithDetails[];
 }
 
-export function LiveContent({ matches }: LiveContentProps) {
+export function LiveContent({ matches: initialMatches }: LiveContentProps) {
   const { locale } = useI18n();
+  const { matches, updatedAt, isRefreshing, refresh } =
+    useLiveMatches(initialMatches);
 
   // Separate live, today's scheduled, and recently finished matches
   const { liveMatches, todayMatches, recentMatches } = useMemo(() => {
@@ -49,9 +52,31 @@ export function LiveContent({ matches }: LiveContentProps) {
                 {locale === "zh" ? "实时比赛中心" : "Live Match Center"}
               </h1>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4" />
-              <span>UTC</span>
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <button
+                type="button"
+                onClick={refresh}
+                className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 transition-colors hover:bg-secondary/50"
+                title={locale === "zh" ? "刷新" : "Refresh"}
+              >
+                <RefreshCw
+                  className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`}
+                />
+                <span>
+                  {updatedAt
+                    ? `${locale === "zh" ? "更新于 " : "Updated "}${updatedAt.toLocaleTimeString(
+                        locale === "zh" ? "zh-CN" : "en-US",
+                        { hour: "2-digit", minute: "2-digit", second: "2-digit" }
+                      )}`
+                    : locale === "zh"
+                      ? "自动刷新"
+                      : "Auto-refresh"}
+                </span>
+              </button>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                <span>UTC</span>
+              </div>
             </div>
           </div>
 
