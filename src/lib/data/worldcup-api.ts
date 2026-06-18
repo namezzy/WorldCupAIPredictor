@@ -91,11 +91,18 @@ export interface LiveData {
 // ---------------------------------------------------------------------------
 // Fetch helpers
 // ---------------------------------------------------------------------------
+// How long Next.js caches an upstream response before refetching (seconds).
+const REVALIDATE_SECONDS = 60;
+// Abort a slow upstream request so navigation never blocks on a hung API.
+const FETCH_TIMEOUT_MS = 3_000;
+
 async function fetchJson<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
-    // Always pull the freshest data; the in-memory cache below throttles calls.
-    cache: "no-store",
+    // Cache upstream responses in Next's Data Cache so navigation between
+    // pages doesn't trigger a fresh blocking round-trip on every click.
+    next: { revalidate: REVALIDATE_SECONDS, tags: ["worldcup"] },
     headers: { Accept: "application/json" },
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
   if (!res.ok) {
     throw new Error(`worldcup api ${path} -> ${res.status}`);
@@ -345,9 +352,21 @@ function mapStandings(
 // ---------------------------------------------------------------------------
 // Aggregation + in-memory throttle cache
 // ---------------------------------------------------------------------------
-const CACHE_TTL_MS = 10_000;
-let cache: { at: number; data: LiveData } | null = null;
-let inflight: Promise<LiveData> | null = null;
+// Serve a successful upstream payload for this long before refetching.
+const CACHE_TTL_MS = 60_000;
+// When upstream is unreachable, serve the mock fallback for this long before
+// retrying. This prevents every navigation from paying the full fetch timeout.
+const FAILURE_TTL_MS = 30_000;
+
+type CacheEntry = { at: number; data: LiveData; stale: boolean };
+// Persist the cache on globalThis so it survives Next.js dev module reloads
+// (which otherwise reset module-level state on every request/navigation).
+const globalCache = globalThis as typeof globalThis & {
+  __worldcupCache?: CacheEntry | null;
+  __worldcupInflight?: Promise<LiveData> | null;
+};
+globalCache.__worldcupCache ??= null;
+globalCache.__worldcupInflight ??= null;
 
 function mockLiveData(): LiveData {
   const groupsWithStandings = mockGroups
@@ -399,22 +418,29 @@ async function loadLiveData(): Promise<LiveData> {
  */
 export async function getLiveData(): Promise<LiveData> {
   const now = Date.now();
-  if (cache && now - cache.at < CACHE_TTL_MS) return cache.data;
-  if (inflight) return inflight;
+  const cache = globalCache.__worldcupCache;
+  if (cache) {
+    const ttl = cache.stale ? FAILURE_TTL_MS : CACHE_TTL_MS;
+    if (now - cache.at < ttl) return cache.data;
+  }
+  if (globalCache.__worldcupInflight) return globalCache.__worldcupInflight;
 
-  inflight = loadLiveData()
+  globalCache.__worldcupInflight = loadLiveData()
     .then((data) => {
-      cache = { at: Date.now(), data };
+      globalCache.__worldcupCache = { at: Date.now(), data, stale: false };
       return data;
     })
     .catch((err) => {
       console.error("[worldcup-api] live fetch failed, using mock data:", err);
-      const fallback = cache?.data ?? mockLiveData();
+      const fallback = globalCache.__worldcupCache?.data ?? mockLiveData();
+      // Cache the fallback so subsequent navigations don't each wait out the
+      // upstream timeout; retry again after FAILURE_TTL_MS.
+      globalCache.__worldcupCache = { at: Date.now(), data: fallback, stale: true };
       return fallback;
     })
     .finally(() => {
-      inflight = null;
+      globalCache.__worldcupInflight = null;
     });
 
-  return inflight;
+  return globalCache.__worldcupInflight;
 }
