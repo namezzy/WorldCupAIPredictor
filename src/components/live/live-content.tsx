@@ -19,7 +19,7 @@ export function LiveContent({ matches: initialMatches }: LiveContentProps) {
   const { locale } = useI18n();
   const { matches } = useLiveMatches(initialMatches);
 
-  const { liveMatches, todayMatches, recentMatches } = useMemo(() => {
+  const { liveMatches, todayMatches } = useMemo(() => {
     const now = new Date();
     const todayKey = now.toISOString().slice(0, 10);
 
@@ -27,15 +27,8 @@ export function LiveContent({ matches: initialMatches }: LiveContentProps) {
     const today = matches.filter(
       (m) => m.status === "scheduled" && m.match_date.startsWith(todayKey)
     );
-    const recent = matches
-      .filter((m) => m.status === "finished")
-      .sort(
-        (a, b) =>
-          new Date(b.match_date).getTime() - new Date(a.match_date).getTime()
-      )
-      .slice(0, 6);
 
-    return { liveMatches: live, todayMatches: today, recentMatches: recent };
+    return { liveMatches: live, todayMatches: today };
   }, [matches]);
 
   const hasLive = liveMatches.length > 0;
@@ -92,42 +85,22 @@ export function LiveContent({ matches: initialMatches }: LiveContentProps) {
         )}
       </section>
 
-      {/* Sidebar: today's schedule + recent results */}
-      <aside className="w-full shrink-0 space-y-6 lg:w-80">
-        <div className="space-y-4">
-          <h2 className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-foreground">
-            {locale === "zh" ? "今日赛程" : "Today's Schedule"}
-          </h2>
-          {todayMatches.length > 0 ? (
-            <div className="space-y-3">
-              {todayMatches.map((match) => (
-                <ScheduleCard key={match.id} match={match} locale={locale} />
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-              {locale === "zh"
-                ? "今日暂无比赛安排"
-                : "No matches scheduled for today"}
-            </div>
-          )}
-        </div>
-
-        {recentMatches.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-foreground">
-              {locale === "zh" ? "近期赛果" : "Recent Results"}
-            </h2>
-            <div className="space-y-3">
-              {recentMatches.map((match) => (
-                <ScheduleCard
-                  key={match.id}
-                  match={match}
-                  locale={locale}
-                  showScore
-                />
-              ))}
-            </div>
+      {/* Sidebar: today's schedule */}
+      <aside className="w-full shrink-0 space-y-4 lg:w-80">
+        <h2 className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-foreground">
+          {locale === "zh" ? "今日赛程" : "Today's Schedule"}
+        </h2>
+        {todayMatches.length > 0 ? (
+          <div className="space-y-3">
+            {todayMatches.map((match) => (
+              <ScheduleCard key={match.id} match={match} locale={locale} />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+            {locale === "zh"
+              ? "今日暂无比赛安排"
+              : "No matches scheduled for today"}
           </div>
         )}
       </aside>
@@ -199,13 +172,19 @@ function LiveMatchCard({
 function ScheduleCard({
   match,
   locale,
-  showScore,
 }: {
   match: MatchWithDetails;
   locale: string;
-  showScore?: boolean;
 }) {
-  const time = match.match_date.slice(11, 16);
+  const iso = match.match_date.endsWith("Z")
+    ? match.match_date
+    : `${match.match_date}Z`;
+  const time = new Date(iso).toLocaleTimeString("zh-CN", {
+    timeZone: "Asia/Shanghai",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
 
   return (
     <Link
@@ -228,13 +207,12 @@ function ScheduleCard({
           </span>
         </div>
 
-        {showScore && match.home_score !== null ? (
-          <span className="font-display text-sm font-bold">
-            {match.home_score} - {match.away_score}
+        <span className="text-xs text-muted-foreground">
+          {time}
+          <span className="ml-1 text-[10px]">
+            {locale === "zh" ? "北京时间" : "CST"}
           </span>
-        ) : (
-          <span className="text-xs text-muted-foreground">{time} UTC</span>
-        )}
+        </span>
 
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">
