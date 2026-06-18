@@ -8,8 +8,26 @@ import { Radio } from "lucide-react";
 import { getFlagUrl } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { getTeamName } from "@/lib/i18n/teams";
+import { getVenueName } from "@/lib/i18n/venues";
 import { useLiveMatches } from "@/lib/hooks/use-live-matches";
 import type { MatchWithDetails } from "@/types";
+
+const beijingDateFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Shanghai",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/** Parse a match date string as UTC (the upstream times are UTC-based). */
+function toUtcDate(value: string): Date {
+  return new Date(value.endsWith("Z") ? value : `${value}Z`);
+}
+
+/** Beijing (Asia/Shanghai) calendar date, e.g. "2026-06-18". */
+function beijingDateKey(date: Date): string {
+  return beijingDateFormatter.format(date);
+}
 
 interface LiveContentProps {
   matches: MatchWithDetails[];
@@ -20,13 +38,19 @@ export function LiveContent({ matches: initialMatches }: LiveContentProps) {
   const { matches } = useLiveMatches(initialMatches);
 
   const { liveMatches, todayMatches } = useMemo(() => {
-    const now = new Date();
-    const todayKey = now.toISOString().slice(0, 10);
+    const todayKey = beijingDateKey(new Date());
 
     const live = matches.filter((m) => m.status === "live");
-    const today = matches.filter(
-      (m) => m.status === "scheduled" && m.match_date.startsWith(todayKey)
-    );
+    const today = matches
+      .filter(
+        (m) =>
+          m.status === "scheduled" &&
+          beijingDateKey(toUtcDate(m.match_date)) === todayKey
+      )
+      .sort(
+        (a, b) =>
+          toUtcDate(a.match_date).getTime() - toUtcDate(b.match_date).getTime()
+      );
 
     return { liveMatches: live, todayMatches: today };
   }, [matches]);
@@ -176,10 +200,7 @@ function ScheduleCard({
   match: MatchWithDetails;
   locale: string;
 }) {
-  const iso = match.match_date.endsWith("Z")
-    ? match.match_date
-    : `${match.match_date}Z`;
-  const time = new Date(iso).toLocaleTimeString("zh-CN", {
+  const time = toUtcDate(match.match_date).toLocaleTimeString("zh-CN", {
     timeZone: "Asia/Shanghai",
     hour: "2-digit",
     minute: "2-digit",
@@ -230,7 +251,7 @@ function ScheduleCard({
         </div>
       </div>
       <div className="mt-1 text-center text-[10px] text-muted-foreground">
-        {match.venue.name}
+        {getVenueName(match.venue.name, locale)}
       </div>
     </Link>
   );
