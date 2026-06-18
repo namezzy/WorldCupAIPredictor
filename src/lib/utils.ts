@@ -41,7 +41,7 @@ const fifaToIso: Record<string, string> = {
   CAN: "ca", SUI: "ch", QAT: "qa", BIH: "ba",
   BRA: "br", MAR: "ma", SCO: "gb-sct", HAI: "ht",
   USA: "us", AUS: "au", PAR: "py", TUR: "tr",
-  GER: "de", ECU: "ec", CIV: "ci", CUW: "cw",
+  GER: "de", ECU: "ec", CIV: "ci", CUW: "cw", CUR: "cw",
   NED: "nl", JPN: "jp", TUN: "tn", SWE: "se",
   BEL: "be", IRN: "ir", EGY: "eg", NZL: "nz",
   ESP: "es", URU: "uy", KSA: "sa", CPV: "cv",

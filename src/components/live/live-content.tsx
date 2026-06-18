@@ -12,21 +12,14 @@ import { getVenueName } from "@/lib/i18n/venues";
 import { useLiveMatches } from "@/lib/hooks/use-live-matches";
 import type { MatchWithDetails } from "@/types";
 
-const beijingDateFormatter = new Intl.DateTimeFormat("en-CA", {
-  timeZone: "Asia/Shanghai",
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-});
-
 /** Parse a match date string as UTC (the upstream times are UTC-based). */
 function toUtcDate(value: string): Date {
   return new Date(value.endsWith("Z") ? value : `${value}Z`);
 }
 
-/** Beijing (Asia/Shanghai) calendar date, e.g. "2026-06-18". */
-function beijingDateKey(date: Date): string {
-  return beijingDateFormatter.format(date);
+/** UTC calendar date, e.g. "2026-06-18". */
+function utcDateKey(date: Date): string {
+  return date.toISOString().slice(0, 10);
 }
 
 interface LiveContentProps {
@@ -38,14 +31,14 @@ export function LiveContent({ matches: initialMatches }: LiveContentProps) {
   const { matches } = useLiveMatches(initialMatches);
 
   const { liveMatches, todayMatches } = useMemo(() => {
-    const todayKey = beijingDateKey(new Date());
+    const todayKey = utcDateKey(new Date());
 
     const live = matches.filter((m) => m.status === "live");
     const today = matches
       .filter(
         (m) =>
-          m.status === "scheduled" &&
-          beijingDateKey(toUtcDate(m.match_date)) === todayKey
+          m.status !== "live" &&
+          utcDateKey(toUtcDate(m.match_date)) === todayKey
       )
       .sort(
         (a, b) =>
