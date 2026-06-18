@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo } from "react";
-import { Radio, Clock, MapPin, RefreshCw } from "lucide-react";
+import { Radio } from "lucide-react";
 
 import { getFlagUrl } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
@@ -17,10 +17,8 @@ interface LiveContentProps {
 
 export function LiveContent({ matches: initialMatches }: LiveContentProps) {
   const { locale } = useI18n();
-  const { matches, updatedAt, isRefreshing, refresh } =
-    useLiveMatches(initialMatches);
+  const { matches } = useLiveMatches(initialMatches);
 
-  // Separate live, today's scheduled, and recently finished matches
   const { liveMatches, todayMatches, recentMatches } = useMemo(() => {
     const now = new Date();
     const todayKey = now.toISOString().slice(0, 10);
@@ -40,137 +38,109 @@ export function LiveContent({ matches: initialMatches }: LiveContentProps) {
     return { liveMatches: live, todayMatches: today, recentMatches: recent };
   }, [matches]);
 
+  const hasLive = liveMatches.length > 0;
+
   return (
-    <div className="mx-auto max-w-[1280px] px-6 py-10">
-      <div className="flex flex-col gap-6 md:flex-row">
-        {/* Main content */}
-        <div className="flex-grow space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <h1 className="font-display text-3xl font-bold md:text-4xl">
-                {locale === "zh" ? "实时比赛中心" : "Live Match Center"}
-              </h1>
-            </div>
-            <div className="flex items-center gap-3 text-sm text-muted-foreground">
-              <button
-                type="button"
-                onClick={refresh}
-                className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 transition-colors hover:bg-secondary/50"
-                title={locale === "zh" ? "刷新" : "Refresh"}
-              >
-                <RefreshCw
-                  className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`}
-                />
-                <span>
-                  {updatedAt
-                    ? `${locale === "zh" ? "更新于 " : "Updated "}${updatedAt.toLocaleTimeString(
-                        locale === "zh" ? "zh-CN" : "en-US",
-                        { hour: "2-digit", minute: "2-digit", second: "2-digit" }
-                      )}`
-                    : locale === "zh"
-                      ? "自动刷新"
-                      : "Auto-refresh"}
-                </span>
-              </button>
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                <span>UTC</span>
-              </div>
-            </div>
+    <main className="mx-auto flex max-w-[1280px] flex-col gap-6 px-6 py-10 md:flex-row">
+      {/* Main column: live matches */}
+      <section className="flex-grow space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span
+              className={`h-2.5 w-2.5 rounded-full ${
+                hasLive ? "animate-pulse bg-red-500" : "bg-muted-foreground"
+              }`}
+            />
+            <h1 className="font-display text-3xl font-bold">
+              {locale === "zh" ? "实时比赛中心" : "Live Match Center"}
+            </h1>
           </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Radio className="h-4 w-4" />
+            <span>
+              {hasLive
+                ? locale === "zh"
+                  ? "进行中"
+                  : "Live"
+                : locale === "zh"
+                  ? "等待比赛"
+                  : "Waiting for matches"}
+            </span>
+          </div>
+        </div>
 
-          {/* Live matches section */}
-          <section>
-            <div className="mb-4 flex items-center gap-3">
-              <div
-                className={`h-2.5 w-2.5 rounded-full ${
-                  liveMatches.length > 0
-                    ? "animate-pulse bg-red-500"
-                    : "bg-muted-foreground"
-                }`}
-              />
-              <h2 className="font-display text-lg font-bold">
-                {locale === "zh" ? "等待比赛" : "Waiting for Matches"}
-              </h2>
-            </div>
-
-            {liveMatches.length > 0 ? (
-              <div className="space-y-4">
-                {liveMatches.map((match) => (
-                  <LiveMatchCard key={match.id} match={match} locale={locale} isLive />
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-xl border border-border bg-card p-12 text-center">
-                <Radio className="mx-auto mb-4 h-12 w-12 text-muted-foreground/30" />
-                <h3 className="mb-2 font-display text-lg font-bold">
-                  {locale === "zh"
-                    ? "当前没有正在进行的比赛"
-                    : "No matches currently in progress"}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {locale === "zh"
-                    ? "请在比赛日访问此页面查看实时更新"
-                    : "Visit this page on match days for live updates"}
-                </p>
-              </div>
-            )}
-          </section>
-
-          {/* Today's schedule */}
-          <section>
-            <h2 className="mb-4 font-display text-lg font-bold">
-              {locale === "zh" ? "今日赛程" : "Today's Schedule"}
+        {hasLive ? (
+          <div className="space-y-4">
+            {liveMatches.map((match) => (
+              <LiveMatchCard key={match.id} match={match} locale={locale} />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-xl border border-border bg-card p-12 text-center">
+            <Radio className="mx-auto mb-4 h-12 w-12 text-muted-foreground/30" />
+            <h2 className="mb-2 font-display text-xl font-bold">
+              {locale === "zh"
+                ? "当前没有正在进行的比赛"
+                : "No matches currently in progress"}
             </h2>
+            <p className="text-muted-foreground">
+              {locale === "zh"
+                ? "请在比赛日访问此页面查看实时更新"
+                : "Visit this page on match days for live updates"}
+            </p>
+          </div>
+        )}
+      </section>
 
-            {todayMatches.length > 0 ? (
-              <div className="space-y-3">
-                {todayMatches.map((match) => (
-                  <TodayMatchCard key={match.id} match={match} locale={locale} />
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-                {locale === "zh"
-                  ? "今日暂无比赛安排"
-                  : "No matches scheduled for today"}
-              </div>
-            )}
-          </section>
-
-          {/* Recent results */}
-          {recentMatches.length > 0 && (
-            <section>
-              <h2 className="mb-4 font-display text-lg font-bold">
-                {locale === "zh" ? "近期赛果" : "Recent Results"}
-              </h2>
-              <div className="space-y-3">
-                {recentMatches.map((match) => (
-                  <TodayMatchCard
-                    key={match.id}
-                    match={match}
-                    locale={locale}
-                    showScore
-                  />
-                ))}
-              </div>
-            </section>
+      {/* Sidebar: today's schedule + recent results */}
+      <aside className="w-full shrink-0 space-y-6 lg:w-80">
+        <div className="space-y-4">
+          <h2 className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-foreground">
+            {locale === "zh" ? "今日赛程" : "Today's Schedule"}
+          </h2>
+          {todayMatches.length > 0 ? (
+            <div className="space-y-3">
+              {todayMatches.map((match) => (
+                <ScheduleCard key={match.id} match={match} locale={locale} />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+              {locale === "zh"
+                ? "今日暂无比赛安排"
+                : "No matches scheduled for today"}
+            </div>
           )}
         </div>
-      </div>
-    </div>
+
+        {recentMatches.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-foreground">
+              {locale === "zh" ? "近期赛果" : "Recent Results"}
+            </h2>
+            <div className="space-y-3">
+              {recentMatches.map((match) => (
+                <ScheduleCard
+                  key={match.id}
+                  match={match}
+                  locale={locale}
+                  showScore
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </aside>
+    </main>
   );
 }
 
 function LiveMatchCard({
   match,
   locale,
-  isLive,
 }: {
   match: MatchWithDetails;
   locale: string;
-  isLive?: boolean;
 }) {
   return (
     <Link href={`/match/${match.id}`} className="block">
@@ -182,7 +152,9 @@ function LiveMatchCard({
           </span>
           {match.group && (
             <span className="ml-auto text-xs text-muted-foreground">
-              {locale === "zh" ? `${match.group.name}组` : `Group ${match.group.name}`}
+              {locale === "zh"
+                ? `${match.group.name}组`
+                : `Group ${match.group.name}`}
             </span>
           )}
         </div>
@@ -224,7 +196,7 @@ function LiveMatchCard({
   );
 }
 
-function TodayMatchCard({
+function ScheduleCard({
   match,
   locale,
   showScore,
@@ -233,17 +205,16 @@ function TodayMatchCard({
   locale: string;
   showScore?: boolean;
 }) {
-  const time = new Date(match.match_date).toLocaleTimeString(
-    locale === "zh" ? "zh-CN" : "en-US",
-    { hour: "2-digit", minute: "2-digit", hour12: false }
-  );
+  const time = match.match_date.slice(11, 16);
 
   return (
-    <Link href={`/match/${match.id}`} className="block">
-      <div className="flex items-center rounded-lg border border-border bg-card p-4 transition-colors hover:border-pitch-green">
-        {/* Home team */}
-        <div className="flex flex-1 items-center gap-2">
-          <div className="relative h-4 w-6 shrink-0 overflow-hidden rounded-sm">
+    <Link
+      href={`/match/${match.id}`}
+      className="block rounded-lg border border-border bg-card p-4 transition-colors hover:border-pitch-green"
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="relative h-3 w-4 shrink-0 overflow-hidden rounded-sm">
             <Image
               src={getFlagUrl(match.home_team.code)}
               alt={getTeamName(match.home_team.name, locale)}
@@ -252,31 +223,24 @@ function TodayMatchCard({
               unoptimized
             />
           </div>
-          <span className="truncate text-sm font-bold">
+          <span className="text-sm font-medium">
             {getTeamName(match.home_team.name, locale)}
           </span>
         </div>
 
-        {/* Score / Time */}
-        <div className="mx-4 shrink-0 text-center">
-          {showScore && match.home_score !== null ? (
-            <span className="font-display text-lg font-bold">
-              {match.home_score} - {match.away_score}
-            </span>
-          ) : (
-            <div>
-              <span className="font-display text-sm font-bold">{time}</span>
-              <span className="ml-1 text-[10px] text-muted-foreground">UTC</span>
-            </div>
-          )}
-        </div>
+        {showScore && match.home_score !== null ? (
+          <span className="font-display text-sm font-bold">
+            {match.home_score} - {match.away_score}
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground">{time} UTC</span>
+        )}
 
-        {/* Away team */}
-        <div className="flex flex-1 items-center justify-end gap-2">
-          <span className="truncate text-sm font-bold">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">
             {getTeamName(match.away_team.name, locale)}
           </span>
-          <div className="relative h-4 w-6 shrink-0 overflow-hidden rounded-sm">
+          <div className="relative h-3 w-4 shrink-0 overflow-hidden rounded-sm">
             <Image
               src={getFlagUrl(match.away_team.code)}
               alt={getTeamName(match.away_team.name, locale)}
@@ -286,12 +250,9 @@ function TodayMatchCard({
             />
           </div>
         </div>
-
-        {/* Venue */}
-        <div className="ml-4 hidden items-center gap-1 text-xs text-muted-foreground md:flex">
-          <MapPin className="h-3 w-3 shrink-0" />
-          <span className="truncate">{match.venue.name}</span>
-        </div>
+      </div>
+      <div className="mt-1 text-center text-[10px] text-muted-foreground">
+        {match.venue.name}
       </div>
     </Link>
   );
