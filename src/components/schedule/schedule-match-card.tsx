@@ -7,6 +7,8 @@ import { MapPin } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { cn, getConfidenceColor, getFlagUrl, getStageLabel } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
+import { getTeamName } from "@/lib/i18n/teams";
 import type { MatchWithDetails } from "@/types";
 
 interface ScheduleMatchCardProps {
@@ -33,6 +35,7 @@ export function ScheduleMatchCard({
   match,
   index = 0,
 }: ScheduleMatchCardProps) {
+  const { locale } = useI18n();
   const isFinished = match.status === "finished";
   const stageLabel = match.group
     ? `Group ${match.group.name}`
@@ -71,14 +74,14 @@ export function ScheduleMatchCard({
               <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-border/60">
                 <Image
                   src={getFlagUrl(match.home_team.code)}
-                  alt={match.home_team.name}
+                  alt={getTeamName(match.home_team.name, locale)}
                   fill
                   className="object-cover"
                   unoptimized
                 />
               </div>
               <span className="truncate text-sm font-semibold md:text-base">
-                {match.home_team.name}
+                {getTeamName(match.home_team.name, locale)}
               </span>
             </div>
 
@@ -96,12 +99,12 @@ export function ScheduleMatchCard({
 
             <div className="flex min-w-0 items-center justify-end gap-3">
               <span className="truncate text-right text-sm font-semibold md:text-base">
-                {match.away_team.name}
+                {getTeamName(match.away_team.name, locale)}
               </span>
               <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-border/60">
                 <Image
                   src={getFlagUrl(match.away_team.code)}
-                  alt={match.away_team.name}
+                  alt={getTeamName(match.away_team.name, locale)}
                   fill
                   className="object-cover"
                   unoptimized

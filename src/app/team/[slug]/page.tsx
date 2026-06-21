@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { TeamName } from "@/components/ui/team-name";
 import { getMatchesByTeam } from "@/lib/data/matches";
 import { getTeamBySlug } from "@/lib/data/teams";
 import { formatShortDate, getFlagUrl, getStageLabel } from "@/lib/utils";
@@ -60,7 +61,7 @@ export default async function TeamPage({ params }: TeamPageProps) {
           />
         </div>
         <div className="text-center md:text-left">
-          <h1 className="mb-2 font-display text-4xl font-bold">{team.name}</h1>
+          <h1 className="mb-2 font-display text-4xl font-bold"><TeamName name={team.name} /></h1>
           <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
             <Badge>{team.code}</Badge>
             <Badge variant="secondary">{team.confederation}</Badge>

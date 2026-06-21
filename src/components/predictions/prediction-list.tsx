@@ -13,6 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useI18n } from "@/lib/i18n";
+import { getTeamName } from "@/lib/i18n/teams";
 import { MatchWithDetails } from "@/types";
 
 interface PredictionListProps {
@@ -65,6 +67,7 @@ function getUpsetProbability(match: MatchWithDetails): number {
 export function PredictionList({ matches }: PredictionListProps) {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("confidence");
+  const { locale } = useI18n();
 
   const filteredMatches = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -77,6 +80,8 @@ export function PredictionList({ matches }: PredictionListProps) {
       return (
         match.home_team.name.toLowerCase().includes(query) ||
         match.away_team.name.toLowerCase().includes(query) ||
+        getTeamName(match.home_team.name, locale).toLowerCase().includes(query) ||
+        getTeamName(match.away_team.name, locale).toLowerCase().includes(query) ||
         match.home_team.code.toLowerCase().includes(query) ||
         match.away_team.code.toLowerCase().includes(query)
       );
@@ -107,7 +112,7 @@ export function PredictionList({ matches }: PredictionListProps) {
 
       return b.prediction.confidence - a.prediction.confidence;
     });
-  }, [matches, search, sortBy]);
+  }, [locale, matches, search, sortBy]);
 
   return (
     <section className="space-y-6">

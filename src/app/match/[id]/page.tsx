@@ -10,6 +10,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { TeamName } from "@/components/ui/team-name";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -66,7 +67,7 @@ export default async function MatchPage({ params }: MatchPageProps) {
             />
           </div>
           <h2 className="font-display text-lg font-bold transition-colors group-hover:text-brand-gold md:text-2xl">
-            {home_team.name}
+            <TeamName name={home_team.name} />
           </h2>
           <p className="text-sm text-muted-foreground">
             FIFA #{home_team.fifa_ranking || "N/A"}
@@ -116,7 +117,7 @@ export default async function MatchPage({ params }: MatchPageProps) {
             />
           </div>
           <h2 className="font-display text-lg font-bold transition-colors group-hover:text-brand-gold md:text-2xl">
-            {away_team.name}
+            <TeamName name={away_team.name} />
           </h2>
           <p className="text-sm text-muted-foreground">
             FIFA #{away_team.fifa_ranking || "N/A"}

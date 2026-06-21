@@ -13,6 +13,8 @@ import {
   getFlagUrl,
   getStageLabel,
 } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
+import { getTeamName } from "@/lib/i18n/teams";
 import { MatchWithDetails } from "@/types";
 
 interface MatchCardProps {
@@ -21,6 +23,7 @@ interface MatchCardProps {
 }
 
 export function MatchCard({ match, index = 0 }: MatchCardProps) {
+  const { locale } = useI18n();
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -54,14 +57,14 @@ export function MatchCard({ match, index = 0 }: MatchCardProps) {
               <div className="relative h-8 w-8 shrink-0">
                 <Image
                   src={getFlagUrl(match.home_team.code)}
-                  alt={match.home_team.name}
+                  alt={getTeamName(match.home_team.name, locale)}
                   fill
                   className="rounded-sm object-cover"
                   unoptimized
                 />
               </div>
               <span className="truncate text-sm font-medium">
-                {match.home_team.name}
+                {getTeamName(match.home_team.name, locale)}
               </span>
             </div>
 
@@ -88,12 +91,12 @@ export function MatchCard({ match, index = 0 }: MatchCardProps) {
 
             <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
               <span className="truncate text-right text-sm font-medium">
-                {match.away_team.name}
+                {getTeamName(match.away_team.name, locale)}
               </span>
               <div className="relative h-8 w-8 shrink-0">
                 <Image
                   src={getFlagUrl(match.away_team.code)}
-                  alt={match.away_team.name}
+                  alt={getTeamName(match.away_team.name, locale)}
                   fill
                   className="rounded-sm object-cover"
                   unoptimized

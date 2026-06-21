@@ -11,6 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useI18n } from "@/lib/i18n";
+import { getTeamName } from "@/lib/i18n/teams";
 import { Team } from "@/types";
 
 import { TeamCard } from "./team-card";
@@ -32,20 +34,23 @@ const confederations = [
 export function TeamGrid({ teams }: TeamGridProps) {
   const [search, setSearch] = useState("");
   const [confederation, setConfederation] = useState("all");
+  const { locale } = useI18n();
 
   const filtered = useMemo(
     () =>
       teams.filter((team) => {
         const query = search.toLowerCase();
+        const localizedName = getTeamName(team.name, locale);
         const matchesSearch =
           team.name.toLowerCase().includes(query) ||
+          localizedName.toLowerCase().includes(query) ||
           team.code.toLowerCase().includes(query);
         const matchesConfed =
           confederation === "all" || team.confederation === confederation;
 
         return matchesSearch && matchesConfed;
       }),
-    [confederation, search, teams]
+    [confederation, locale, search, teams]
   );
 
   return (

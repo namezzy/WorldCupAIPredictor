@@ -7,6 +7,8 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { getFlagUrl } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
+import { getTeamName } from "@/lib/i18n/teams";
 import { Team } from "@/types";
 
 interface TeamCardProps {
@@ -15,6 +17,7 @@ interface TeamCardProps {
 }
 
 export function TeamCard({ team, index = 0 }: TeamCardProps) {
+  const { locale } = useI18n();
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -26,14 +29,14 @@ export function TeamCard({ team, index = 0 }: TeamCardProps) {
           <div className="relative mx-auto mb-3 h-12 w-16">
             <Image
               src={getFlagUrl(team.code)}
-              alt={team.name}
+              alt={getTeamName(team.name, locale)}
               fill
               className="rounded-sm object-cover"
               unoptimized
             />
           </div>
           <h3 className="mb-1 text-sm font-semibold transition-colors group-hover/card:text-brand-gold">
-            {team.name}
+            {getTeamName(team.name, locale)}
           </h3>
           <div className="mb-2 flex items-center justify-center gap-2">
             <Badge variant="secondary" className="text-xs">

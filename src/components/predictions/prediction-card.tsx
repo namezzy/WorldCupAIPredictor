@@ -16,6 +16,8 @@ import {
   getFlagUrl,
   getStageLabel,
 } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
+import { getTeamName } from "@/lib/i18n/teams";
 import { MatchWithDetails, Prediction } from "@/types";
 
 interface PredictionCardProps {
@@ -90,6 +92,8 @@ function getProbabilityLabel(outcome: MatchOutcome, match: MatchWithDetails) {
 }
 
 export function PredictionCard({ match }: PredictionCardProps) {
+  const { locale } = useI18n();
+
   if (!match.prediction) {
     return null;
   }
@@ -103,9 +107,9 @@ export function PredictionCard({ match }: PredictionCardProps) {
     match.away_score === match.prediction.predicted_away_score;
   const mostLikelyLabel =
     predictedOutcome === "home"
-      ? match.home_team.name
+      ? getTeamName(match.home_team.name, locale)
       : predictedOutcome === "away"
-        ? match.away_team.name
+        ? getTeamName(match.away_team.name, locale)
         : "Draw";
 
   return (
@@ -142,14 +146,14 @@ export function PredictionCard({ match }: PredictionCardProps) {
               <div className="mb-3 flex items-center gap-3">
                 <Image
                   src={getFlagUrl(match.home_team.code)}
-                  alt={match.home_team.name}
+                  alt={getTeamName(match.home_team.name, locale)}
                   width={40}
                   height={28}
                   className="rounded-sm object-cover"
                   unoptimized
                 />
                 <div className="min-w-0">
-                  <p className="truncate font-semibold">{match.home_team.name}</p>
+                  <p className="truncate font-semibold">{getTeamName(match.home_team.name, locale)}</p>
                   <p className="text-xs text-muted-foreground">
                     FIFA #{match.home_team.fifa_ranking ?? "N/A"}
                   </p>
@@ -172,14 +176,14 @@ export function PredictionCard({ match }: PredictionCardProps) {
             <div className="min-w-0 text-right">
               <div className="mb-3 flex items-center justify-end gap-3">
                 <div className="min-w-0">
-                  <p className="truncate font-semibold">{match.away_team.name}</p>
+                  <p className="truncate font-semibold">{getTeamName(match.away_team.name, locale)}</p>
                   <p className="text-xs text-muted-foreground">
                     FIFA #{match.away_team.fifa_ranking ?? "N/A"}
                   </p>
                 </div>
                 <Image
                   src={getFlagUrl(match.away_team.code)}
-                  alt={match.away_team.name}
+                  alt={getTeamName(match.away_team.name, locale)}
                   width={40}
                   height={28}
                   className="rounded-sm object-cover"

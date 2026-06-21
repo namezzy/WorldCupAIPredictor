@@ -1,7 +1,11 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 
 import { getFlagUrl } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
+import { getTeamName } from "@/lib/i18n/teams";
 import { GroupStanding } from "@/types";
 
 interface GroupTableProps {
@@ -10,6 +14,7 @@ interface GroupTableProps {
 }
 
 export function GroupTable({ groupName, standings }: GroupTableProps) {
+  const { locale } = useI18n();
   return (
     <div className="glass-card overflow-hidden">
       <div className="border-b border-border/50 bg-brand-gold/5 px-4 py-3">
@@ -49,13 +54,13 @@ export function GroupTable({ groupName, standings }: GroupTableProps) {
                       <div className="relative h-4 w-6 shrink-0">
                         <Image
                           src={getFlagUrl(row.team.code)}
-                          alt={row.team.name}
+                          alt={getTeamName(row.team.name, locale)}
                           fill
                           className="rounded-[2px] object-cover"
                           unoptimized
                         />
                       </div>
-                      <span className="truncate font-medium">{row.team.name}</span>
+                      <span className="truncate font-medium">{getTeamName(row.team.name, locale)}</span>
                     </Link>
                   ) : (
                     <span className="text-muted-foreground">TBD</span>
