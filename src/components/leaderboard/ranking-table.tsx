@@ -25,6 +25,7 @@ import type { LeaderboardEntry } from "@/types";
 interface RankingTableProps {
   entries: LeaderboardEntry[];
   currentUserId: string;
+  locale?: string;
 }
 
 type TabValue = "all" | "top-10" | "around-me";
@@ -45,7 +46,8 @@ function getDisplayName(entry: LeaderboardEntry) {
   return entry.user?.display_name || entry.user?.username || "Anonymous Fan";
 }
 
-export function RankingTable({ entries, currentUserId }: RankingTableProps) {
+export function RankingTable({ entries, currentUserId, locale = "en" }: RankingTableProps) {
+  const isZh = locale === "zh";
   const [search, setSearch] = useState("");
   const currentUserIndex = entries.findIndex((entry) => entry.user_id === currentUserId);
 
@@ -77,18 +79,22 @@ export function RankingTable({ entries, currentUserId }: RankingTableProps) {
   };
 
   const tabConfig: { value: TabValue; label: string }[] = [
-    { value: "all", label: "All Players" },
-    { value: "top-10", label: "Top 10" },
-    { value: "around-me", label: "Around Me" },
+    { value: "all", label: isZh ? "全部玩家" : "All Players" },
+    { value: "top-10", label: isZh ? "前 10 名" : "Top 10" },
+    { value: "around-me", label: isZh ? "我的附近" : "Around Me" },
   ];
 
   return (
     <Card className="glass-card border-border/60 p-0">
       <div className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="font-display text-2xl font-bold">Full Rankings</h2>
+          <h2 className="font-display text-2xl font-bold">
+            {isZh ? "完整排名" : "Full Rankings"}
+          </h2>
           <p className="text-sm text-muted-foreground">
-            Search simulated players, compare exact hits, and chase the top spot.
+            {isZh
+              ? "搜索玩家，比较精准命中数，争夺榜首。"
+              : "Search simulated players, compare exact hits, and chase the top spot."}
           </p>
         </div>
         <div className="relative w-full max-w-sm">
@@ -96,7 +102,7 @@ export function RankingTable({ entries, currentUserId }: RankingTableProps) {
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search username or display name"
+            placeholder={isZh ? "搜索用户名" : "Search username or display name"}
             className="h-11 rounded-xl border-white/10 bg-background/70 pl-9"
           />
         </div>
@@ -117,11 +123,11 @@ export function RankingTable({ entries, currentUserId }: RankingTableProps) {
           <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
             <Badge variant="outline" className="gap-1 border-brand-gold/30 bg-brand-gold/10 text-brand-gold">
               <Sparkles className="h-3 w-3" />
-              Mock current user: {entries[currentUserIndex]?.user?.username ?? currentUserId}
+              {isZh ? "模拟当前用户" : "Mock current user"}: {entries[currentUserIndex]?.user?.username ?? currentUserId}
             </Badge>
             <Badge variant="outline" className="gap-1 border-white/10 bg-background/60">
               <Target className="h-3 w-3" />
-              12 predictions per player
+              {isZh ? "每人 12 次预测" : "12 predictions per player"}
             </Badge>
           </div>
         </div>
@@ -133,23 +139,25 @@ export function RankingTable({ entries, currentUserId }: RankingTableProps) {
             <TabsContent key={tab.value} value={tab.value}>
               <Table className="min-w-[760px]">
                 <TableCaption>
-                  Showing {filteredEntries.length} of {tabbedEntries[tab.value].length} players
+                  {isZh
+                    ? `显示 ${filteredEntries.length} / ${tabbedEntries[tab.value].length} 名玩家`
+                    : `Showing ${filteredEntries.length} of ${tabbedEntries[tab.value].length} players`}
                 </TableCaption>
                 <TableHeader>
                   <TableRow className="border-white/10 hover:bg-transparent">
-                    <TableHead className="w-16">Rank</TableHead>
-                    <TableHead>Player</TableHead>
-                    <TableHead className="text-right">Points</TableHead>
-                    <TableHead className="text-right">Exact Scores</TableHead>
-                    <TableHead className="text-right">Correct Outcomes</TableHead>
-                    <TableHead className="text-right">Accuracy</TableHead>
+                    <TableHead className="w-16">{isZh ? "排名" : "Rank"}</TableHead>
+                    <TableHead>{isZh ? "玩家" : "Player"}</TableHead>
+                    <TableHead className="text-right">{isZh ? "得分" : "Points"}</TableHead>
+                    <TableHead className="text-right">{isZh ? "精准比分" : "Exact Scores"}</TableHead>
+                    <TableHead className="text-right">{isZh ? "正确胜负" : "Correct Outcomes"}</TableHead>
+                    <TableHead className="text-right">{isZh ? "准确率" : "Accuracy"}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredEntries.length === 0 ? (
                     <TableRow className="border-white/10 hover:bg-transparent">
                       <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
-                        No players matched “{search}”.
+                      {isZh ? `没有匹配 "${search}" 的玩家。` : `No players matched "${search}".`}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -186,7 +194,7 @@ export function RankingTable({ entries, currentUserId }: RankingTableProps) {
                                     {getDisplayName(entry)}
                                   </p>
                                   {isCurrentUser && (
-                                    <Badge className="bg-brand-gold text-background">You</Badge>
+                                    <Badge className="bg-brand-gold text-background">{isZh ? "你" : "You"}</Badge>
                                   )}
                                 </div>
                                 <p className="truncate text-xs text-muted-foreground">

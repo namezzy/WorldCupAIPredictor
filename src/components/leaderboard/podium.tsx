@@ -1,3 +1,5 @@
+"use client";
+
 import { Crown, Medal, Star, Trophy } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -8,6 +10,7 @@ import type { LeaderboardEntry } from "@/types";
 
 interface PodiumProps {
   entries: LeaderboardEntry[];
+  locale?: string;
 }
 
 const podiumStyles = {
@@ -43,7 +46,8 @@ function getInitials(entry: LeaderboardEntry) {
     .toUpperCase();
 }
 
-export function Podium({ entries }: PodiumProps) {
+export function Podium({ entries, locale = "en" }: PodiumProps) {
+  const isZh = locale === "zh";
   const [first, second, third] = entries;
   const orderedEntries = [second, first, third].filter(Boolean) as LeaderboardEntry[];
 
@@ -61,7 +65,7 @@ export function Podium({ entries }: PodiumProps) {
             )}
           >
             <div className="mb-5 flex items-center justify-between">
-              <Badge className={style.badge}>Rank #{entry.rank}</Badge>
+              <Badge className={style.badge}>{isZh ? `第 ${entry.rank} 名` : `Rank #${entry.rank}`}</Badge>
               {style.icon}
             </div>
 
@@ -85,7 +89,7 @@ export function Podium({ entries }: PodiumProps) {
             <div className="grid grid-cols-3 gap-3 rounded-2xl border border-white/5 bg-background/50 p-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                  Points
+                  {isZh ? "得分" : "Points"}
                 </p>
                 <p className="mt-1 font-display text-2xl font-bold text-brand-gold">
                   {entry.total_points}
@@ -93,13 +97,13 @@ export function Podium({ entries }: PodiumProps) {
               </div>
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                  Exact
+                  {isZh ? "精准" : "Exact"}
                 </p>
                 <p className="mt-1 text-lg font-semibold">{entry.exact_scores}</p>
               </div>
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                  Accuracy
+                  {isZh ? "准确率" : "Accuracy"}
                 </p>
                 <p className={cn("mt-1 text-lg font-semibold", getConfidenceColor(entry.accuracy))}>
                   {entry.accuracy}%
@@ -110,7 +114,9 @@ export function Podium({ entries }: PodiumProps) {
             <div className="mt-5 flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <Trophy className="h-4 w-4 text-brand-gold" />
               <span>
-                {entry.correct_outcomes} correct outcomes from {entry.total_predictions} picks
+                {isZh
+                  ? `${entry.total_predictions} 次预测中命中 ${entry.correct_outcomes} 次`
+                  : `${entry.correct_outcomes} correct outcomes from ${entry.total_predictions} picks`}
               </span>
             </div>
           </Card>
