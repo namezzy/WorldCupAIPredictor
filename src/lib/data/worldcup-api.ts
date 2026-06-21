@@ -170,7 +170,7 @@ function mapConfederation(areaName: string): string {
 
 function parseGroupId(group: string | null): string | null {
   if (!group) return null;
-  const letter = group.replace("GROUP_", "").toLowerCase();
+  const letter = group.replace(/^GROUP_/i, "").replace(/^Group\s*/i, "").toLowerCase();
   return `group-${letter}`;
 }
 
@@ -445,7 +445,7 @@ function mapStandings(
     .filter((s) => s.type === "TOTAL" && s.group)
     .map((s) => {
       const gid = parseGroupId(s.group)!;
-      const letter = s.group.replace("GROUP_", "");
+      const letter = s.group.replace(/^GROUP_/i, "").replace(/^Group\s*/i, "").trim();
       const group: Group = { id: gid, name: letter };
 
       const standings: GroupStanding[] = s.table.map(
