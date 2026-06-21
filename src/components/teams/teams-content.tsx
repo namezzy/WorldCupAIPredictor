@@ -40,10 +40,10 @@ export function TeamsContent({ teams, groups }: TeamsContentProps) {
           <div key={group.id}>
             {/* Group header badge */}
             <div className="mb-4 inline-flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-300/20 text-sm font-bold text-blue-300 ring-2 ring-blue-300/40">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#8BABC7] text-sm font-bold text-[#1a2332]">
                 {group.name}
               </span>
-              <span className="text-xl font-bold text-slate-200">
+              <span className="text-xl font-bold">
                 {locale === "zh" ? `${group.name}组` : `Group ${group.name}`}
               </span>
             </div>
