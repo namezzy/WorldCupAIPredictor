@@ -35,28 +35,30 @@ export function TeamsContent({ teams, groups }: TeamsContentProps) {
       </p>
 
       {/* Groups */}
-      <div className="space-y-8">
+      <div className="space-y-10">
         {teamsByGroup.map(({ group, teams: groupTeams }) => (
           <div key={group.id}>
-            {/* Group header */}
-            <div className="mb-4 flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-navy text-sm font-bold text-white">
-                {group.name}
-              </span>
-              <span className="text-lg font-bold">
-                {locale === "zh" ? `${group.name} 组` : `Group ${group.name}`}
+            {/* Group header badge */}
+            <div className="mb-4">
+              <span className="inline-flex items-center gap-2 rounded-lg border border-red-500/60 px-4 py-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-sm font-bold">
+                  {group.name}
+                </span>
+                <span className="text-base font-bold">
+                  {locale === "zh" ? `${group.name}组` : `Group ${group.name}`}
+                </span>
               </span>
             </div>
 
             {/* Team cards grid */}
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {groupTeams.map((team) => (
                 <Link
                   key={team.id}
                   href={`/team/${team.slug}`}
-                  className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-all hover:border-pitch-green/50 hover:shadow-md"
+                  className="group flex items-center gap-3 rounded-lg border border-border bg-card/80 px-4 py-3 transition-all hover:border-green-500/50 hover:bg-card"
                 >
-                  <div className="relative h-8 w-12 shrink-0 overflow-hidden rounded-sm shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
+                  <div className="relative h-7 w-10 shrink-0 overflow-hidden rounded-[3px] shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
                     <Image
                       src={getFlagUrl(team.code)}
                       alt={getTeamName(team.name, locale)}
@@ -66,11 +68,11 @@ export function TeamsContent({ teams, groups }: TeamsContentProps) {
                     />
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate font-bold transition-colors group-hover:text-pitch-green">
+                    <p className="truncate text-sm font-bold transition-colors group-hover:text-green-400">
                       {getTeamName(team.name, locale)}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      FIFA #{team.fifa_ranking}
+                      FIFA #{team.fifa_ranking ?? "N/A"}
                     </p>
                   </div>
                 </Link>
