@@ -39,14 +39,12 @@ export function TeamsContent({ teams, groups }: TeamsContentProps) {
         {teamsByGroup.map(({ group, teams: groupTeams }) => (
           <div key={group.id}>
             {/* Group header badge */}
-            <div className="mb-4">
-              <span className="inline-flex items-center gap-2 rounded-lg border border-red-500/60 px-4 py-2">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-sm font-bold">
-                  {group.name}
-                </span>
-                <span className="text-base font-bold">
-                  {locale === "zh" ? `${group.name}组` : `Group ${group.name}`}
-                </span>
+            <div className="mb-4 inline-flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-300/20 text-sm font-bold text-blue-300 ring-2 ring-blue-300/40">
+                {group.name}
+              </span>
+              <span className="text-xl font-bold text-slate-200">
+                {locale === "zh" ? `${group.name}组` : `Group ${group.name}`}
               </span>
             </div>
 
