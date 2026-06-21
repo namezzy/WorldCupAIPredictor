@@ -44,7 +44,7 @@ export function TeamsContent({ teams, groups }: TeamsContentProps) {
                 {group.name}
               </span>
               <span className="text-xl font-semibold text-white">
-                {locale === "zh" ? `${group.name}组` : `Group ${group.name}`}
+                {locale === "zh" ? `${group.name}组` : `${group.name}`}
               </span>
             </div>
 
