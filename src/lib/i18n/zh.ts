@@ -66,6 +66,6 @@ export const zh: Dictionary = {
     navigation: "导航",
     connect: "联系",
     copyright:
-      "© 2026 WorldCup AI Predictor. AI 构建，与 FIFA 无关。",
+      "© 2026 WorldCup AI Predictor. Levi构建，与 FIFA 无关。",
   },
 };

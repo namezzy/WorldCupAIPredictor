@@ -65,7 +65,7 @@ export const en = {
     navigation: "Navigation",
     connect: "Connect",
     copyright:
-      "© 2026 WorldCup AI Predictor. Built with AI. Not affiliated with FIFA.",
+      "© 2026 WorldCup AI Predictor. Built with Levi. Not affiliated with FIFA.",
   },
 };
 

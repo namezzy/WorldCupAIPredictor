@@ -50,16 +50,18 @@ export function Footer() {
             <h3 className="mb-4 text-sm font-semibold">{t.footer.connect}</h3>
             <div className="flex gap-3">
               <a
-                href="#"
+                href="https://github.com/namezzy"
+                target="_blank"
+                rel="noreferrer"
                 className="text-muted-foreground transition-colors hover:text-foreground"
-                aria-label="Community site"
+                aria-label="GitHub"
               >
                 <Globe className="h-5 w-5" />
               </a>
               <a
-                href="#"
+                href="mailto:xmj@linux.do"
                 className="text-muted-foreground transition-colors hover:text-foreground"
-                aria-label="Social updates"
+                aria-label="Email"
               >
                 <MessageCircle className="h-5 w-5" />
               </a>
