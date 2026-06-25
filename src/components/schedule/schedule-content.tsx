@@ -494,67 +494,71 @@ function CalendarView({
       </div>
 
       {/* Weekday headers */}
-      <div className="grid grid-cols-7 border-b border-border bg-secondary/20">
-        {weekdays.map((wd) => (
-          <div key={wd} className="px-2 py-2.5 text-center text-xs font-medium text-muted-foreground">
-            {wd}
+      <div className="overflow-x-auto">
+        <div className="min-w-[700px]">
+          <div className="grid grid-cols-7 border-b border-border bg-secondary/20">
+            {weekdays.map((wd) => (
+              <div key={wd} className="px-2 py-2.5 text-center text-xs font-medium text-muted-foreground">
+                {wd}
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {/* Calendar grid */}
-      <div className="grid grid-cols-7">
-        {cells.map((cell, idx) => {
-          const dayMatches = cell.dateKey ? matchesByDate.get(cell.dateKey) || [] : [];
-          const hasMatches = dayMatches.length > 0;
-          const today = new Date();
-          const isToday =
-            cell.day !== null &&
-            today.getFullYear() === calendarMonth.year &&
-            today.getMonth() === calendarMonth.month &&
-            today.getDate() === cell.day;
+          {/* Calendar grid */}
+          <div className="grid grid-cols-7">
+            {cells.map((cell, idx) => {
+              const dayMatches = cell.dateKey ? matchesByDate.get(cell.dateKey) || [] : [];
+              const hasMatches = dayMatches.length > 0;
+              const today = new Date();
+              const isToday =
+                cell.day !== null &&
+                today.getFullYear() === calendarMonth.year &&
+                today.getMonth() === calendarMonth.month &&
+                today.getDate() === cell.day;
 
-          return (
-            <div
-              key={idx}
-              className={`min-h-[120px] border-b border-r border-border/50 p-2 ${
-                cell.day === null ? "bg-secondary/10" : ""
-              } ${isToday ? "bg-brand-gold/5" : ""}`}
-            >
-              {cell.day !== null && (
-                <>
-                  {/* Day number and match count */}
-                  <div className="mb-1.5 flex items-baseline justify-between">
-                    <span
-                      className={`text-lg font-bold ${
-                        isToday ? "text-brand-gold" : hasMatches ? "text-foreground" : "text-muted-foreground/50"
-                      }`}
-                    >
-                      {cell.day}
-                    </span>
-                    {hasMatches && (
-                      <span className="text-[10px] font-medium text-muted-foreground">
-                        {dayMatches.length}{locale === "zh" ? "场" : ""}
-                      </span>
-                    )}
-                  </div>
+              return (
+                <div
+                  key={idx}
+                  className={`min-h-[120px] border-b border-r border-border/50 p-2 ${
+                    cell.day === null ? "bg-secondary/10" : ""
+                  } ${isToday ? "bg-brand-gold/5" : ""}`}
+                >
+                  {cell.day !== null && (
+                    <>
+                      {/* Day number and match count */}
+                      <div className="mb-1.5 flex items-baseline justify-between">
+                        <span
+                          className={`text-lg font-bold ${
+                            isToday ? "text-brand-gold" : hasMatches ? "text-foreground" : "text-muted-foreground/50"
+                          }`}
+                        >
+                          {cell.day}
+                        </span>
+                        {hasMatches && (
+                          <span className="text-[10px] font-medium text-muted-foreground">
+                            {dayMatches.length}{locale === "zh" ? "场" : ""}
+                          </span>
+                        )}
+                      </div>
 
-                  {/* Match mini cards */}
-                  <div className="space-y-1.5">
-                    {dayMatches.slice(0, 3).map((match) => (
-                      <CalendarMatchMini key={match.id} match={match} locale={locale} />
-                    ))}
-                    {dayMatches.length > 3 && (
-                      <p className="text-center text-[10px] text-muted-foreground">
-                        +{dayMatches.length - 3} {locale === "zh" ? "场" : "more"}
-                      </p>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          );
-        })}
+                      {/* Match mini cards */}
+                      <div className="space-y-1.5">
+                        {dayMatches.slice(0, 3).map((match) => (
+                          <CalendarMatchMini key={match.id} match={match} locale={locale} />
+                        ))}
+                        {dayMatches.length > 3 && (
+                          <p className="text-center text-[10px] text-muted-foreground">
+                            +{dayMatches.length - 3} {locale === "zh" ? "场" : "more"}
+                          </p>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );
