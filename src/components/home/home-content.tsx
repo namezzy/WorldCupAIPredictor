@@ -5,6 +5,7 @@ import { ChevronRight } from "lucide-react";
 
 import { HeroSection } from "@/components/home/hero-section";
 import { FeaturedMatch } from "@/components/home/featured-match";
+import { FeatureCards } from "@/components/home/feature-cards";
 import { UpcomingMatches } from "@/components/home/upcoming-matches";
 import { TopTeams } from "@/components/home/top-teams";
 import { GroupsOverview } from "@/components/home/groups-overview";
@@ -65,6 +66,9 @@ export function HomeContent({
 
       {/* Featured Match + AI Showcase (2-column) */}
       {featuredMatch && <FeaturedMatch match={featuredMatch} />}
+
+      {/* Community engagement feature cards */}
+      <FeatureCards />
 
       {/* Upcoming Matches */}
       <section className="mx-auto max-w-[1280px] px-4 py-12">

@@ -59,6 +59,28 @@ export const zh: Dictionary = {
     final: "完场",
     group: "组",
     confidence: "置信度",
+    features: {
+      title: "参与其中",
+      hint: "不止看球，还能参与",
+      predict: {
+        tag: "AI 赛前预测",
+        title: "查看每场比赛的胜率分析",
+        desc: "赛前查看 AI 给出的胜率与关键对位，先人一步看懂比赛。",
+        action: "查看预测",
+      },
+      calendar: {
+        tag: "日历订阅",
+        title: "把世界杯赛程加进日历",
+        desc: "订阅完整赛程，不用每天回来找开球时间。",
+        action: "订阅赛程",
+      },
+      community: {
+        tag: "社区排行榜",
+        title: "冲上预测排行榜",
+        desc: "给出你的比分判断，和其他球迷一起看谁猜得更准。",
+        action: "查看排行榜",
+      },
+    },
   },
   footer: {
     description:

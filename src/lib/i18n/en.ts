@@ -58,6 +58,28 @@ export const en = {
     final: "Final",
     group: "Group",
     confidence: "confidence",
+    features: {
+      title: "Get Involved",
+      hint: "More than just watching — take part",
+      predict: {
+        tag: "AI Preview",
+        title: "See win-probability analysis",
+        desc: "Check AI-generated odds and key matchups before every game.",
+        action: "View predictions",
+      },
+      calendar: {
+        tag: "Calendar Sync",
+        title: "Add the schedule to your calendar",
+        desc: "Subscribe to the full fixture list so you never miss a kickoff.",
+        action: "Subscribe",
+      },
+      community: {
+        tag: "Community",
+        title: "Climb the prediction leaderboard",
+        desc: "Compare your calls with other fans and race up the rankings.",
+        action: "View leaderboard",
+      },
+    },
   },
   footer: {
     description:
@@ -126,6 +148,13 @@ export type Dictionary = {
     final: string;
     group: string;
     confidence: string;
+    features: {
+      title: string;
+      hint: string;
+      predict: { tag: string; title: string; desc: string; action: string };
+      calendar: { tag: string; title: string; desc: string; action: string };
+      community: { tag: string; title: string; desc: string; action: string };
+    };
   };
   footer: {
     description: string;
