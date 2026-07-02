@@ -108,6 +108,51 @@ function fmtDate(iso: string): { date: string; time: string } {
   return { date: `${m[2]}/${m[3]}`, time: `${m[4]}:${m[5]}` };
 }
 
+/** Winning side of a finished, decided match — null if unplayed/drawn/unknown. */
+function winningSide(m: MatchWithDetails | undefined): "home" | "away" | null {
+  if (!m || m.status !== "finished") return null;
+  if (m.home_score === null || m.away_score === null) return null;
+  if (m.home_score === m.away_score) return null;
+  return m.home_score > m.away_score ? "home" : "away";
+}
+
+/**
+ * Resolve the team occupying one side of a knockout match, walking the bracket
+ * tree. Prefers the API-provided team; otherwise, when the slot is fed by a
+ * finished match (Wxx / Lxx), computes the advancing team recursively.
+ * Returns null for slots whose feeder match has not been decided yet.
+ */
+function resolveParticipant(
+  matchId: number,
+  side: "home" | "away",
+  liveById: Map<number, MatchWithDetails>,
+  depth = 0
+): Team | null {
+  if (depth > 10) return null;
+
+  const live = liveById.get(matchId);
+  if (live) {
+    const teamId = side === "home" ? live.home_team_id : live.away_team_id;
+    const team = side === "home" ? live.home_team : live.away_team;
+    if (teamId && team) return team;
+  }
+
+  const ko = koMatchById.get(matchId);
+  if (!ko) return null;
+  const token = side === "home" ? ko.homeId : ko.awayId;
+
+  const wl = token.match(/^([WL])(\d+)$/);
+  if (!wl) return null; // group-position slot not yet assigned by the API
+
+  const feederId = Number(wl[2]);
+  const win = winningSide(liveById.get(feederId));
+  if (!win) return null;
+
+  const lose = win === "home" ? "away" : "home";
+  const wantSide = wl[1] === "W" ? win : lose;
+  return resolveParticipant(feederId, wantSide, liveById, depth + 1);
+}
+
 function TeamRow({
   label,
   team,
@@ -176,20 +221,21 @@ function MatchCard({
   locale,
   hovered,
   onHover,
-  live,
+  liveById,
 }: {
   match: KoMatch;
   locale: string;
   hovered: boolean;
   onHover: (id: number | null) => void;
-  live: MatchWithDetails | undefined;
+  liveById: Map<number, MatchWithDetails>;
 }) {
+  const live = liveById.get(match.id);
   const status = live?.status ?? "scheduled";
   const isLive = status === "live";
   const showScore = status === "finished" || status === "live";
 
-  const homeTeam = live && live.home_team_id ? live.home_team : null;
-  const awayTeam = live && live.away_team_id ? live.away_team : null;
+  const homeTeam = resolveParticipant(match.id, "home", liveById);
+  const awayTeam = resolveParticipant(match.id, "away", liveById);
   const homeScore = live?.home_score ?? null;
   const awayScore = live?.away_score ?? null;
 
@@ -297,7 +343,7 @@ function Column({
           locale={locale}
           hovered={hoveredId === m.id}
           onHover={onHover}
-          live={liveById.get(m.id)}
+          liveById={liveById}
         />
       ))}
     </div>
