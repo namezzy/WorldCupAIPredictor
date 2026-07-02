@@ -9,6 +9,10 @@ import { getTeamName } from "@/lib/i18n/teams";
 import { cn, getFlagUrl } from "@/lib/utils";
 import type { MatchWithDetails, Team } from "@/types";
 import {
+  GroupStandings,
+  type GroupWithStandings,
+} from "./group-standings";
+import {
   type KoMatch,
   koMatchById,
   slotLabel,
@@ -302,8 +306,10 @@ function Column({
 
 export function BracketContent({
   initialMatches = [],
+  groupsWithStandings = [],
 }: {
   initialMatches?: MatchWithDetails[];
+  groupsWithStandings?: GroupWithStandings[];
 }) {
   const { locale } = useI18n();
   const [hoveredId, setHoveredId] = useState<number | null>(null);
@@ -329,32 +335,38 @@ export function BracketContent({
   }, []);
 
   return (
-    <div className="mx-auto max-w-[1280px] px-4 py-8">
-      {/* Header */}
-      <div className="mb-2 flex items-center gap-3">
-        <Trophy className="h-5 w-5 text-brand-gold" />
-        <h1 className="font-display text-3xl font-bold md:text-4xl">
-          {locale === "zh" ? "淘汰赛对阵图" : "Knockout Bracket"}
-        </h1>
-        {updatedAt && (
-          <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-            {locale === "zh" ? "实时" : "Live"} ·{" "}
-            {updatedAt.toLocaleTimeString(locale === "zh" ? "zh-CN" : "en-US", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </span>
-        )}
+    <div className="py-8">
+      <div className="mx-auto max-w-[1280px] px-4">
+        {/* Header */}
+        <div className="mb-2 flex items-center gap-3">
+          <Trophy className="h-6 w-6 text-brand-gold" />
+          <h1 className="font-display text-3xl font-bold md:text-4xl">
+            {locale === "zh" ? "淘汰赛对阵图" : "Knockout Bracket"}
+          </h1>
+          {updatedAt && (
+            <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+              {locale === "zh" ? "实时" : "Live"} ·{" "}
+              {updatedAt.toLocaleTimeString(locale === "zh" ? "zh-CN" : "en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+          )}
+        </div>
+        <p className="mb-6 text-sm text-muted-foreground">
+          {locale === "zh"
+            ? "32强单败淘汰制赛程，左右拖动查看完整的冠军晋级路线，悬停比赛可高亮晋级路径。比分实时更新。"
+            : "32-team single elimination bracket. Scroll horizontally and hover a match to highlight its path. Scores update live."}
+        </p>
       </div>
-      <p className="mb-6 text-sm text-muted-foreground">
-        {locale === "zh"
-          ? "32强单败淘汰制赛程，左右拖动查看完整的冠军晋级路线，悬停比赛可高亮晋级路径。比分实时更新。"
-          : "32-team single elimination bracket. Scroll horizontally and hover a match to highlight its path. Scores update live."}
-      </p>
+
+      {/* Group standings */}
+      <GroupStandings groupsWithStandings={groupsWithStandings} />
 
       {/* Scrollable bracket */}
-      <div className="overflow-x-auto pb-8 pt-4">
+      <div className="border-t border-border bg-card/30">
+        <div className="overflow-x-auto pb-8 pt-4">
         <div
           className="flex min-w-max px-8 items-center justify-center mx-auto"
           style={{ height: H }}
@@ -412,6 +424,7 @@ export function BracketContent({
               );
             })}
         </div>
+      </div>
       </div>
     </div>
   );

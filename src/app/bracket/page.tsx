@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { BracketContent } from "@/components/bracket/bracket-content";
 import { getAllMatches } from "@/lib/data/matches";
+import { getAllGroupsWithStandings } from "@/lib/data/groups";
 
 export const metadata: Metadata = {
   title: "Bracket",
@@ -9,6 +10,14 @@ export const metadata: Metadata = {
 };
 
 export default async function BracketPage() {
-  const matches = await getAllMatches();
-  return <BracketContent initialMatches={matches} />;
+  const [matches, groupsWithStandings] = await Promise.all([
+    getAllMatches(),
+    getAllGroupsWithStandings(),
+  ]);
+  return (
+    <BracketContent
+      initialMatches={matches}
+      groupsWithStandings={groupsWithStandings}
+    />
+  );
 }
