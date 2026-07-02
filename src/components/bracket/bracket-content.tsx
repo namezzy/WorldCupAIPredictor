@@ -7,13 +7,14 @@ import { useI18n } from "@/lib/i18n";
 import { useLiveMatches } from "@/lib/hooks/use-live-matches";
 import { getTeamName } from "@/lib/i18n/teams";
 import { cn, getFlagUrl } from "@/lib/utils";
-import type { MatchWithDetails, Team } from "@/types";
+import type { MatchStage, MatchWithDetails, Team } from "@/types";
 import {
   GroupStandings,
   type GroupWithStandings,
 } from "./group-standings";
 import {
   type KoMatch,
+  koMatches,
   koMatchById,
   slotLabel,
   LEFT_ROOT,
@@ -24,6 +25,115 @@ import {
 
 const H = 800;
 const CONNECTOR_W = 48;
+
+/** Map a bracket-data KoStage onto the API MatchStage used by the live data. */
+const KO_STAGE_TO_MATCH_STAGE: Record<string, MatchStage> = {
+  round_of_32: "round_of_32",
+  round_of_16: "round_of_16",
+  quarterfinal: "quarter_final",
+  semifinal: "semi_final",
+  third_place: "third_place",
+  final: "final",
+};
+
+/**
+ * The live API returns knockout matches with global ids and no bracket number,
+ * so we cannot look them up by the 73–104 numbering directly. This resolves the
+ * mapping by walking the bracket tree: group-position slots (e.g. "1E", "2A")
+ * are resolved from the final group standings to anchor teams, then each API
+ * match is located by the teams it contains. Winners/losers of finished matches
+ * are threaded forward to resolve later rounds. Undecided matches are skipped.
+ */
+function buildKoMatchMap(
+  apiMatches: MatchWithDetails[],
+  groups: GroupWithStandings[]
+): Map<number, MatchWithDetails> {
+  const byStage = new Map<string, MatchWithDetails[]>();
+  for (const m of apiMatches) {
+    const arr = byStage.get(m.stage);
+    if (arr) arr.push(m);
+    else byStage.set(m.stage, [m]);
+  }
+
+  // group letter -> team ids ordered by final standing position (1..4)
+  const groupPos = new Map<string, (string | null)[]>();
+  for (const { group, standings } of groups) {
+    const sorted = [...standings].sort((a, b) => a.position - b.position);
+    groupPos.set(
+      group.name.toUpperCase(),
+      sorted.map((s) => s.team_id)
+    );
+  }
+
+  const anchorTeam = (token: string): string | null => {
+    const m = token.match(/^([12])([A-Z])$/);
+    if (!m) return null;
+    return groupPos.get(m[2])?.[Number(m[1]) - 1] ?? null;
+  };
+
+  const result = new Map<number, MatchWithDetails>();
+  const winnerOf = new Map<number, string>();
+  const loserOf = new Map<number, string>();
+  const usedApiIds = new Set<string>();
+
+  const expectedTeams = (ko: KoMatch): string[] => {
+    const out: string[] = [];
+    for (const token of [ko.homeId, ko.awayId]) {
+      const anchor = anchorTeam(token);
+      if (anchor) {
+        out.push(anchor);
+        continue;
+      }
+      const w = token.match(/^W(\d+)$/);
+      if (w) {
+        const t = winnerOf.get(Number(w[1]));
+        if (t) out.push(t);
+        continue;
+      }
+      const l = token.match(/^L(\d+)$/);
+      if (l) {
+        const t = loserOf.get(Number(l[1]));
+        if (t) out.push(t);
+      }
+    }
+    return out;
+  };
+
+  // Ascending id order guarantees feeder matches are resolved before their
+  // dependants (e.g. R32 #74 before R16 #89).
+  const ordered = [...koMatches].sort((a, b) => a.id - b.id);
+  for (const ko of ordered) {
+    const stage = KO_STAGE_TO_MATCH_STAGE[ko.stage];
+    const needed = expectedTeams(ko);
+    if (needed.length === 0) continue;
+
+    const pool = byStage.get(stage) ?? [];
+    const found = pool.find((m) => {
+      if (usedApiIds.has(m.id)) return false;
+      const ids = [m.home_team_id, m.away_team_id];
+      return needed.every((t) => ids.includes(t));
+    });
+    if (!found) continue;
+
+    usedApiIds.add(found.id);
+    result.set(ko.id, found);
+
+    if (
+      found.status === "finished" &&
+      found.home_score !== null &&
+      found.away_score !== null &&
+      found.home_score !== found.away_score &&
+      found.home_team_id &&
+      found.away_team_id
+    ) {
+      const homeWin = found.home_score > found.away_score;
+      winnerOf.set(ko.id, homeWin ? found.home_team_id : found.away_team_id);
+      loserOf.set(ko.id, homeWin ? found.away_team_id : found.home_team_id);
+    }
+  }
+
+  return result;
+}
 
 /** Build the 4 columns [R32, R16, QF, SF] for one half by walking the win tree. */
 function buildColumns(rootId: number): KoMatch[][] {
@@ -361,14 +471,10 @@ export function BracketContent({
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const { matches, updatedAt } = useLiveMatches(initialMatches);
 
-  const liveById = useMemo(() => {
-    const map = new Map<number, MatchWithDetails>();
-    for (const m of matches) {
-      const id = Number(m.id);
-      if (Number.isFinite(id)) map.set(id, m);
-    }
-    return map;
-  }, [matches]);
+  const liveById = useMemo(
+    () => buildKoMatchMap(matches, groupsWithStandings),
+    [matches, groupsWithStandings]
+  );
 
   const { leftCols, rightCols, centerCol } = useMemo(() => {
     const left = buildColumns(LEFT_ROOT);

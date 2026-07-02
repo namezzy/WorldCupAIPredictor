@@ -178,6 +178,7 @@ function mapStage(stage: string): MatchStage {
   switch (stage) {
     case "GROUP_STAGE":
       return "group";
+    case "LAST_32":
     case "ROUND_OF_32":
       return "round_of_32";
     case "LAST_16":
